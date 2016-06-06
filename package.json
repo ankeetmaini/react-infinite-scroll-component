@@ -25,7 +25,7 @@
     "react-component"
   ],
   "author": "Ankeet Maini <ankeet.maini@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/ankeetmaini/react-infinite-scroll-component/issues"
   },

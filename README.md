@@ -1,4 +1,6 @@
 # react-infinite-scroll
+[![npm](https://img.shields.io/npm/dt/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component)
+[![npm](https://img.shields.io/npm/v/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component)
 A component to make all your infinite scrolling woes go away with just 4.15 kB!
 
 # install
