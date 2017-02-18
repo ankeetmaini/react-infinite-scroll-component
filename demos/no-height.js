@@ -20,6 +20,7 @@ export default class NoHeight extends React.Component {
       divs: divs
     };
     this.generateDivs = this.generateDivs.bind(this);
+    this.refresh = this.refresh.bind(this);
   }
 
   generateDivs () {
@@ -37,11 +38,20 @@ export default class NoHeight extends React.Component {
     }, 500);
   }
 
+  refresh () {
+    this.setState({divs: []});
+    setTimeout(() => {
+      this.setState({divs});
+    }, 3000);
+  }
+
   render () {
     return (
       <div>
         <h3>{noHeightMessage}</h3>
         <InfiniteScroll
+          pullDownToRefresh
+          refreshFunction={this.refresh}
           next={this.generateDivs}
           hasMore={true}
           loader={<h4>Loading...</h4>}>
