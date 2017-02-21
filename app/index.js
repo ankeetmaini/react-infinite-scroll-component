@@ -119,7 +119,7 @@ export default class InfiniteScroll extends Component {
     }
 
     requestAnimationFrame(() => {
-      this._infScroll.style.overflow = 'hidden';
+      this._infScroll.style.overflow = 'auto';
       this._infScroll.style.transform = 'none';
       this._infScroll.style.willChange = 'none';
     });
@@ -171,39 +171,46 @@ export default class InfiniteScroll extends Component {
       ...this.props.style
     };
     const hasChildren = this.props.hasChildren || !!(this.props.children && this.props.children.length);
+
+    // because heighted infiniteScroll visualy breaks
+    // on drag down as overflow becomes visible
+    const outerDivStyle = (this.props.pullDownToRefresh && this.props.height)
+      ? {overflow: 'auto'} : {};
     return (
-      <div
-        className='infinite-scroll-component'
-        ref={infScroll => this._infScroll = infScroll}
-        style={{...style, overflow: 'hidden'}}
-      >
-        {this.props.pullDownToRefresh && (
-          <div
-            style={{ position: 'relative' }}
-            ref={pullDown => this._pullDown = pullDown}
-          >
-            <div style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              top: (-1 * this.maxPullDownDistance),
-            }}>
-              {!this.state.pullToRefreshThresholdBreached &&
-                this.props.pullDownToRefreshContent}
-              {this.state.pullToRefreshThresholdBreached &&
-                this.props.releaseToRefreshContent}
+      <div style={outerDivStyle}>
+        <div
+          className='infinite-scroll-component'
+          ref={infScroll => this._infScroll = infScroll}
+          style={style}
+        >
+          {this.props.pullDownToRefresh && (
+            <div
+              style={{ position: 'relative' }}
+              ref={pullDown => this._pullDown = pullDown}
+            >
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: (-1 * this.maxPullDownDistance),
+              }}>
+                {!this.state.pullToRefreshThresholdBreached &&
+                  this.props.pullDownToRefreshContent}
+                {this.state.pullToRefreshThresholdBreached &&
+                  this.props.releaseToRefreshContent}
+              </div>
             </div>
-          </div>
-        )}
-        {this.props.children}
-        {!this.state.showLoader && !hasChildren && this.props.hasMore &&
-          this.props.loader}
-        {this.state.showLoader && this.props.loader}
-        {!this.props.hasMore && (
-          <p style={{textAlign: 'center'}}>
-            {this.props.endMessage || <b>Yay! You have seen it all</b>}
-          </p>
-        )}
+          )}
+          {this.props.children}
+          {!this.state.showLoader && !hasChildren && this.props.hasMore &&
+            this.props.loader}
+          {this.state.showLoader && this.props.loader}
+          {!this.props.hasMore && (
+            <p style={{textAlign: 'center'}}>
+              {this.props.endMessage || <b>Yay! You have seen it all</b>}
+            </p>
+          )}
+        </div>
       </div>
     );
   }

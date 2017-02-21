@@ -10,9 +10,11 @@ const toggle = function () {
   return () => {
     if (mode === 'noHeight') {
       mode = 'height';
+      document.getElementById('app').innerHTML = '';
       ReactDOM.render(<Height/>, document.getElementById('app'));
     } else {
       mode = 'noHeight';
+      document.getElementById('app').innerHTML = '';
       ReactDOM.render(<NoHeight/>, document.getElementById('app'));
     }
   };
