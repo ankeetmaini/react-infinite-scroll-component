@@ -1,6 +1,7 @@
 # react-infinite-scroll-component [![npm](https://img.shields.io/npm/dt/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component) [![npm](https://img.shields.io/npm/v/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component)
 
-A component to make all your infinite scrolling woes go away with just 4.15 kB!
+A component to make all your infinite scrolling woes go away with just 4.15 kB! `Pull Down to Refresh` feature
+added. An infinite-scroll that actually works and super-simple to integrate!
 
 # install
 ```bash
@@ -29,6 +30,23 @@ The `InfiniteScroll` component can be used in two ways.
     {items} // your long array goes in here
   </InfiniteScroll>
 ```
+
+- **Pull Down to Refresh** support added.
+
+```js
+<InfiniteScroll
+    pullDownToRefresh // to enable the feature
+    pullDownToRefreshContent={<h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>}
+    releaseToRefreshContent={<h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>}
+    refreshFunction={this.refresh} // function which will be called, this should send the refreshed children down
+    // rest of the usual props
+    next={this.generateDivs}
+    hasMore={true}
+    loader={<h4>Loading...</h4>}>
+    {this.state.divs}
+  </InfiniteScroll>
+```
+
 # props
 name | type | description
 -----|------|------------
@@ -41,3 +59,8 @@ name | type | description
 **style** | object | any style which you want to override
 **height** | number | optional, give only if you want to have a fixed height scrolling content
 **hasChildren** | bool | `children` is by default assumed to be of type array and it's length is used to determine if loader needs to be shown or not, if your `children` is not an array, specify this prop to tell if your items are 0 or more.
+**pullDownToRefresh** | bool | to enable **Pull Down to Refresh** feature
+**pullDownToRefreshContent** | node | any JSX that you want to show the user, __default={<h3>Pull down to refresh</h3>}__
+**releaseToRefreshContent** | node | any JSX that you want to show the user, __default={<h3>Release to refresh</h3>}__
+**pullDownToRefreshThreshold** | number | minimum distance the user needs to pull down to trigger the refresh, __default=100px__
+**refreshFunction** | function | this function will be called, it should return the fresh data that you want to show the user

@@ -41,6 +41,14 @@ export default class InfiniteScroll extends Component {
       // get BCR of pullDown element to position it above
       this.maxPullDownDistance = this._pullDown.firstChild.getBoundingClientRect().height;
       this.forceUpdate();
+
+      if (typeof this.props.refreshFunction !== 'function') {
+        throw new Error(
+          `Mandatory prop "refreshFunction" missing.
+          Pull Down To Refresh functionality will not work
+          as expected. Check README.md for usage'`
+        );
+      }
     }
   }
 
@@ -107,7 +115,7 @@ export default class InfiniteScroll extends Component {
     this.dragging = false;
 
     if (this.state.pullToRefreshThresholdBreached) {
-      this.props.refreshFunction();
+      this.props.refreshFunction && this.props.refreshFunction();
     }
 
     requestAnimationFrame(() => {
