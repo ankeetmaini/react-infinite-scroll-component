@@ -51,6 +51,8 @@ export default class NoHeight extends React.Component {
         <h3>{noHeightMessage}</h3>
         <InfiniteScroll
           pullDownToRefresh
+          pullDownToRefreshContent={<h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>}
+          releaseToRefreshContent={<h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>}
           refreshFunction={this.refresh}
           next={this.generateDivs}
           hasMore={true}
