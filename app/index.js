@@ -8,12 +8,12 @@ export default class InfiniteScroll extends Component {
       showLoader: false,
       lastScrollTop: 0,
       actionTriggered: false,
-      dragging: false,
       pullToRefreshThresholdBreached: false
     };
     // variables to keep track of pull down behaviour
     this.startY = 0;
     this.currentY = 0;
+    this.dragging = false;
     // will be populated in componentDidMount
     // based on the height of the pull down element
     this.maxPullDownDistance = 0;
@@ -70,17 +70,20 @@ export default class InfiniteScroll extends Component {
   onStart (evt) {
     evt.preventDefault();
 
-    this.setState({dragging: true});
+    this.dragging = true;
     this.startY = evt.pageY || evt.touches[0].pageY;
     this.currentY = this.startY;
 
     this._infScroll.style.willChange = 'transform';
-    this._infScroll.style.transition = `transform 0.01s cubic-bezier(0,0,0.31,1)`;
+    this._infScroll.style.transition = `transform 0.2s cubic-bezier(0,0,0.31,1)`;
   }
 
   onMove (evt) {
-    if (!this.state.dragging) return;
+    if (!this.dragging) return;
     this.currentY = evt.pageY || evt.touches[0].pageY;
+
+    // user is scrolling down to up
+    if (this.currentY < this.startY) return;
 
     if ((this.currentY - this.startY) >= this.props.pullDownToRefreshThreshold) {
       this.setState({
@@ -101,14 +104,14 @@ export default class InfiniteScroll extends Component {
     this.startY = 0;
     this.currentY = 0;
 
-    this.setState({dragging: false});
+    this.dragging = false;
 
     if (this.state.pullToRefreshThresholdBreached) {
       this.props.refreshFunction();
     }
 
-    this._infScroll.style.overflow = 'hidden';
     requestAnimationFrame(() => {
+      this._infScroll.style.overflow = 'hidden';
       this._infScroll.style.transform = 'none';
       this._infScroll.style.willChange = 'none';
     });
