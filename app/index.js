@@ -78,6 +78,8 @@ export default class InfiniteScroll extends Component {
   onStart (evt) {
     evt.preventDefault();
 
+    if (this.state.lastScrollTop) return;
+
     this.dragging = true;
     this.startY = evt.pageY || evt.touches[0].pageY;
     this.currentY = this.startY;
@@ -132,7 +134,7 @@ export default class InfiniteScroll extends Component {
     ? window.screen.availHeight : target.clientHeight;
 
     const scrolled = scrollThreshold * (target.scrollHeight - target.scrollTop);
-    return scrolled < clientHeight;
+    return scrolled <= clientHeight;
   }
 
   onScrollListener (event) {
