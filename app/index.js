@@ -76,8 +76,6 @@ export default class InfiniteScroll extends Component {
   }
 
   onStart (evt) {
-    evt.preventDefault();
-
     if (this.state.lastScrollTop) return;
 
     this.dragging = true;
@@ -106,8 +104,6 @@ export default class InfiniteScroll extends Component {
 
     this._infScroll.style.overflow = 'visible';
     this._infScroll.style.transform = `translate3d(0px, ${this.currentY - this.startY}px, 0px)`;
-
-    evt.preventDefault();
   }
 
   onEnd (evt) {
@@ -125,8 +121,6 @@ export default class InfiniteScroll extends Component {
       this._infScroll.style.transform = 'none';
       this._infScroll.style.willChange = 'none';
     });
-
-    evt.preventDefault();
   }
 
   isElementAtBottom (target, scrollThreshold = 0.8) {
