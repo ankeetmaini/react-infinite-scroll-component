@@ -202,11 +202,7 @@ export default class InfiniteScroll extends Component {
           {!this.state.showLoader && !hasChildren && this.props.hasMore &&
             this.props.loader}
           {this.state.showLoader && this.props.loader}
-          {!this.props.hasMore && (
-            <p style={{textAlign: 'center'}}>
-              {this.props.endMessage || <b>Yay! You have seen it all</b>}
-            </p>
-          )}
+          {!this.props.hasMore && this.props.endMessage}
         </div>
       </div>
     );
