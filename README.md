@@ -18,21 +18,6 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 - The code for demos is in the `demos/` directory. You can also clone and open `lib/index.html` in your browser to see the demos in action.
 
 # using
-The `InfiniteScroll` component can be used in two ways.
-
-- Without giving any height to your **scrollable** content. In which case the scroll will happen at `document.body` like *Facebook's* timeline scroll.
-- If you want your **scrollable** content to have a definite height then your content will be scrollable with the height specified in the props.
-
-```js
-  <InfiniteScroll
-    next={functionToLoadNextData}
-    hasMore={true}
-    loader={<h4>Loading...</h4>}>
-    {items} // your long array goes in here
-  </InfiniteScroll>
-```
-
-- **Pull Down to Refresh** support added.
 
 ```js
 <InfiniteScroll
@@ -41,12 +26,22 @@ The `InfiniteScroll` component can be used in two ways.
     releaseToRefreshContent={<h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>}
     refreshFunction={this.refresh} // function which will be called, this should send the refreshed children down
     // rest of the usual props
-    next={this.generateDivs}
+    next={fetchData}
     hasMore={true}
-    loader={<h4>Loading...</h4>}>
-    {this.state.divs}
+    loader={<h4>Loading...</h4>}
+    endMessage({
+     <p style={{textAlign: 'center'}}>
+       <b>Yay! You have seen it all</b>
+     </p>
+   })>
+    {items}
   </InfiniteScroll>
 ```
+
+The `InfiniteScroll` component can be used in two ways.
+
+- Without giving any height to your **scrollable** content. In which case the scroll will happen at `document.body` like *Facebook's* timeline scroll.
+- If you want your **scrollable** content to have a definite height then your content will be scrollable with the height specified in the props.
 
 # props
 name | type | description
