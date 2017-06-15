@@ -19,23 +19,26 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 
 # using
 
-```js
+```jsx
 <InfiniteScroll
-    pullDownToRefresh // to enable the feature
-    pullDownToRefreshContent={<h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>}
-    releaseToRefreshContent={<h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>}
-    refreshFunction={this.refresh} // function which will be called, this should send the refreshed children down
-    // rest of the usual props
-    next={fetchData}
-    hasMore={true}
-    loader={<h4>Loading...</h4>}
-    endMessage({
-     <p style={{textAlign: 'center'}}>
-       <b>Yay! You have seen it all</b>
-     </p>
-   })>
-    {items}
-  </InfiniteScroll>
+  pullDownToRefresh
+  pullDownToRefreshContent={
+    <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
+  }
+  releaseToRefreshContent={
+    <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
+  }
+  refreshFunction={this.refresh}
+  next={fetchData}
+  hasMore={true}
+  loader={<h4>Loading...</h4>}
+  endMessage={
+    <p style={{textAlign: 'center'}}>
+      <b>Yay! You have seen it all</b>
+    </p>
+  }>
+  {items}
+</InfiniteScroll>
 ```
 
 The `InfiniteScroll` component can be used in two ways.
