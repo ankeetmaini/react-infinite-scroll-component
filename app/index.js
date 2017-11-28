@@ -136,7 +136,7 @@ export default class InfiniteScroll extends Component {
     ? window.screen.availHeight : target.clientHeight;
 
     const scrolled = scrollThreshold * (target.scrollHeight - target.scrollTop);
-    return scrolled <= clientHeight;
+    return scrolled * (window.devicePixelRatio || 1) <= clientHeight;
   }
 
   onScrollListener (event) {
