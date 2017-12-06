@@ -38,13 +38,13 @@ export default class InfiniteScroll extends Component {
     }
 
     if (this.props.pullDownToRefresh) {
-      document.addEventListener('touchstart', this.onStart);
-      document.addEventListener('touchmove', this.onMove);
-      document.addEventListener('touchend', this.onEnd);
+      this.el.addEventListener('touchstart', this.onStart);
+      this.el.addEventListener('touchmove', this.onMove);
+      this.el.addEventListener('touchend', this.onEnd);
 
-      document.addEventListener('mousedown', this.onStart);
-      document.addEventListener('mousemove', this.onMove);
-      document.addEventListener('mouseup', this.onEnd);
+      this.el.addEventListener('mousedown', this.onStart);
+      this.el.addEventListener('mousemove', this.onMove);
+      this.el.addEventListener('mouseup', this.onEnd);
 
       // get BCR of pullDown element to position it above
       this.maxPullDownDistance = this._pullDown.firstChild.getBoundingClientRect().height;
@@ -64,13 +64,13 @@ export default class InfiniteScroll extends Component {
     this.el.removeEventListener('scroll', this.throttledOnScrollListener);
 
     if (this.props.pullDownToRefresh) {
-      document.removeEventListener('touchstart', this.onStart);
-      document.removeEventListener('touchmove', this.onMove);
-      document.removeEventListener('touchend', this.onEnd);
+      this.el.removeEventListener('touchstart', this.onStart);
+      this.el.removeEventListener('touchmove', this.onMove);
+      this.el.removeEventListener('touchend', this.onEnd);
 
-      document.removeEventListener('mousedown', this.onStart);
-      document.removeEventListener('mousemove', this.onMove);
-      document.removeEventListener('mouseup', this.onEnd);
+      this.el.removeEventListener('mousedown', this.onStart);
+      this.el.removeEventListener('mousemove', this.onMove);
+      this.el.removeEventListener('mouseup', this.onEnd);
     }
   }
 
