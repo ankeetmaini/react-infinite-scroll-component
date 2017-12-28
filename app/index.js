@@ -27,7 +27,7 @@ export default class InfiniteScroll extends Component {
   }
 
   componentDidMount () {
-    this.el = this.props.height ? this._infScroll : this.props.ancestorScroll ? this.props.ancestorScroll : window;
+    this.el = this.props.height ? this._infScroll : this.props.scrollableTarget || window;
     this.el.addEventListener('scroll', this.throttledOnScrollListener);
 
     if (
@@ -146,7 +146,7 @@ export default class InfiniteScroll extends Component {
       setTimeout(() => this.props.onScroll(event), 0);
     }
 
-    let target = this.props.height || this.props.ancestorScroll
+    let target = this.props.height || this.props.scrollableTarget
       ? event.target
       : (document.documentElement.scrollTop ? document.documentElement : document.body);
 
@@ -230,7 +230,6 @@ InfiniteScroll.defaultProps = {
 }
 
 InfiniteScroll.propTypes = {
-  ancestorScroll: PropTypes.node,
   next: PropTypes.func,
   hasMore: PropTypes.bool,
   children: PropTypes.node,
@@ -239,6 +238,7 @@ InfiniteScroll.propTypes = {
   endMessage: PropTypes.node,
   style: PropTypes.object,
   height: PropTypes.number,
+  scrollableTarget: PropTypes.node,
   hasChildren: PropTypes.bool,
   pullDownToRefresh: PropTypes.bool,
   pullDownToRefreshContent: PropTypes.node,
