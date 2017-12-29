@@ -43,8 +43,8 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 
 The `InfiniteScroll` component can be used in three ways.
 
-- Specify a value for the `height` prop if you want your **scrollable** content to have a specific height, providing scrollbars for scrolling through your content.
-- If your **scrollable** content is being rendered within a parent element that is already providing overflow scrollbars, you can set the `scrollableTarget` prop to reference the DOM element and use it's scrollbar position for fetching more data.
+- Specify a value for the `height` prop if you want your **scrollable** content to have a specific height, providing scrollbars for scrolling your content and fetching more data.
+- If your **scrollable** content is being rendered within a parent element that is already providing overflow scrollbars, you can set the `scrollableTarget` prop to reference the DOM element and use it's scrollbars for fetching more data.
 - Without setting either the `height` or `scrollableTarget` props, the scroll will happen at `document.body` like *Facebook's* timeline scroll.
 
 
