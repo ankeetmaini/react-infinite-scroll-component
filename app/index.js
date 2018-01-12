@@ -163,7 +163,7 @@ export default class InfiniteScroll extends Component {
     // prevents multiple triggers.
     if (this.state.actionTriggered) return;
 
-    let atBottom = this.isElementAtBottom(target, this.props.scrollThreshold);
+    let atBottom = (this.props.isElementAtBottom || this.isElementAtBottom)(target, this.props.scrollThreshold);
 
     // call the `next` function in the props to trigger the next data fetch
     if (atBottom && this.props.hasMore) {
@@ -246,4 +246,5 @@ InfiniteScroll.propTypes = {
   pullDownToRefreshThreshold: PropTypes.number,
   refreshFunction: PropTypes.func,
   onScroll: PropTypes.func,
+  isElementAtBottom: PropTypes.func,
 };
