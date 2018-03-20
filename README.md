@@ -22,7 +22,7 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 ```jsx
 <InfiniteScroll
   pullDownToRefresh
-  dataLength={data.length} //This is important field to render the next data
+  dataLength={items.length} //This is important field to render the next data
   pullDownToRefreshContent={
     <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
   }
