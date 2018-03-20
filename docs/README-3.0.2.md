@@ -22,7 +22,6 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 ```jsx
 <InfiniteScroll
   pullDownToRefresh
-  dataLength={data.length} //This is important field to render the next data
   pullDownToRefreshContent={
     <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
   }
@@ -49,17 +48,12 @@ The `InfiniteScroll` component can be used in three ways.
 - Without setting either the `height` or `scrollableTarget` props, the scroll will happen at `document.body` like *Facebook's* timeline scroll.
 
 
-# docs version wise
-[3.0.2](docs/README-3.0.2.md)
-
-
 # props
 name | type | description
 -----|------|------------
 **next** | function | a function which must be called after reaching the bottom. It must trigger some sort of action which fetches the next data. **The data is passed as `children` to the `InfiniteScroll` component and the data should contain previous items too.** e.g. *Initial data = [1, 2, 3]* and then next load of data should be *[1, 2, 3, 4, 5, 6]*.
 **hasMore** | boolean | it tells the `InfiniteScroll` component on whether to call `next` function on reaching the bottom and shows an `endMessage` to the user
 **children** | node (list) | the data items which you need to scroll.
-**dataLength** | number | set the length of the data.This will be unlock the subsequent calls to next.
 **loader** | node | you can send a loader component to show while the component waits for the next load of data. e.g. `<h3>Loading...</h3>` or any fancy loader element
 **scrollThreshold** | number | a threshold value after that the `InfiniteScroll` will call `next`. By default it's `0.8`. It means the `next` will be called when the user comes below 80% of the total height.
 **onScroll** | function | a function that will listen to the scroll event on the scrolling container. Note that the scroll event is throttled, so you may not receive as many events as you would expect. 

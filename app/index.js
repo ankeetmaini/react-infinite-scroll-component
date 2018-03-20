@@ -209,7 +209,7 @@ export default class InfiniteScroll extends Component {
           {this.props.children}
           {!this.state.showLoader && !hasChildren && this.props.hasMore &&
             this.props.loader}
-          {this.state.showLoader && this.props.loader}
+          {this.state.showLoader && this.props.hasMore && this.props.loader}
           {!this.props.hasMore && this.props.endMessage}
         </div>
       </div>
@@ -241,5 +241,5 @@ InfiniteScroll.propTypes = {
   pullDownToRefreshThreshold: PropTypes.number,
   refreshFunction: PropTypes.func,
   onScroll: PropTypes.func,
-  dataLength: PropTypes.number,
+  dataLength: PropTypes.number.isRequired,
 };
