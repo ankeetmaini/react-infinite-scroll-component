@@ -65,6 +65,7 @@ name | type | description
 **onScroll** | function | a function that will listen to the scroll event on the scrolling container. Note that the scroll event is throttled, so you may not receive as many events as you would expect. 
 **endMessage** | node |  this message is shown to the user when he has seen all the records which means he's at the bottom and `hasMore` is `false`
 **style** | object | any style which you want to override
+**outerStyle** | object | any style that you may want to apply to the outer `div` (`overflow` will be overridden and set as `auto`).
 **height** | number | optional, give only if you want to have a fixed height scrolling content
 **scrollableTarget** | node | optional, reference to a (parent) DOM element that is already providing overflow scrollbars to the `InfiniteScroll` component.
 **hasChildren** | bool | `children` is by default assumed to be of type array and it's length is used to determine if loader needs to be shown or not, if your `children` is not an array, specify this prop to tell if your items are 0 or more.
