@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import root from 'window-or-global';
 import throttle from './utils/throttle';
 
 export default class InfiniteScroll extends Component {
@@ -33,7 +34,7 @@ export default class InfiniteScroll extends Component {
     this._scrollableNode = this.getScrollableTarget();
     this.el = this.props.height
       ? this._infScroll
-      : this._scrollableNode || window;
+      : this._scrollableNode || root;
     this.el.addEventListener("scroll", this.throttledOnScrollListener);
 
     if (
@@ -158,7 +159,7 @@ export default class InfiniteScroll extends Component {
   isElementAtBottom(target, scrollThreshold = 0.8) {
     const clientHeight =
       target === document.body || target === document.documentElement
-        ? window.screen.availHeight
+        ? root.screen.availHeight
         : target.clientHeight;
 
     return (
