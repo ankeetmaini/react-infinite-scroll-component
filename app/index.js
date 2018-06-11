@@ -179,11 +179,9 @@ export default class InfiniteScroll extends Component {
           ? document.documentElement
           : document.body;
 
-    // change actionTriggered and showLoader to false immediately after actionTriggered becoreturn immediately if the action has already been triggered,
+    // return immediately if the action has already been triggered,
     // prevents multiple triggers.
-    if (this.state.actionTriggered) {
-      this.setState({ actionTriggered: false, showLoader: false })
-    }
+    if (this.state.actionTriggered) return;
 
     let atBottom = this.isElementAtBottom(target, this.props.scrollThreshold);
 
