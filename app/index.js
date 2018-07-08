@@ -85,7 +85,6 @@ export default class InfiniteScroll extends Component {
     if (this.props.dataLength !== props.dataLength) {
       this.setState({
         showLoader: false,
-        actionTriggered: false,
         pullToRefreshThresholdBreached: false
       });
     }
@@ -190,7 +189,7 @@ export default class InfiniteScroll extends Component {
       this.setState({ actionTriggered: true, showLoader: true });
       this.props.next();
     }
-    this.setState({ lastScrollTop: target.scrollTop });
+    this.setState({ lastScrollTop: target.scrollTop, actionTriggered: false });
   }
 
   render() {
