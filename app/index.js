@@ -28,6 +28,7 @@ export default class InfiniteScroll extends Component {
     this.onStart = this.onStart.bind(this);
     this.onMove = this.onMove.bind(this);
     this.onEnd = this.onEnd.bind(this);
+    this.getScrollableTarget = this.getScrollableTarget.bind(this);
   }
 
   componentDidMount() {
@@ -113,6 +114,20 @@ export default class InfiniteScroll extends Component {
 
   isScrollDown() {
     return this.props.scrollDirection === "down" ? true : false;
+  }
+
+  getScrollableTarget() {
+    if (this.props.scrollableTarget instanceof HTMLElement) return this.props.scrollableTarget;
+    if (typeof this.props.scrollableTarget === 'string') {
+      return document.getElementById(this.props.scrollableTarget);
+    }
+    if (this.props.scrollableTarget === null) {
+      console.warn(`You are trying to pass scrollableTarget but it is null. This might
+        happen because the element may not have been added to DOM yet.
+        See https://github.com/ankeetmaini/react-infinite-scroll-component/issues/59 for more info.
+      `);
+    }
+    return null;
   }
 
   onStart(evt) {
