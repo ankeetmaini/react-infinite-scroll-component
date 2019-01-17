@@ -82,15 +82,13 @@ export default class InfiniteScroll extends Component {
   }
 
   componentWillReceiveProps(props) {
-    // do nothing when dataLength is unchanged
-    if (this.props.dataLength === props.dataLength) return;
-
-    // update state when new data was sent in
-    this.setState({
-      showLoader: false,
-      actionTriggered: false,
-      pullToRefreshThresholdBreached: false
-    });
+     // update state when new data was sent in
+    if (this.props.dataLength !== props.dataLength) {
+      this.setState({
+        showLoader: false,
+        pullToRefreshThresholdBreached: false
+      });
+    }
   }
 
   getScrollableTarget() {
@@ -189,18 +187,14 @@ export default class InfiniteScroll extends Component {
           ? document.documentElement
           : document.body;
 
-    // return immediately if the action has already been triggered,
-    // prevents multiple triggers.
-    if (this.state.actionTriggered) return;
-
     let atBottom = this.isElementAtBottom(target, this.props.scrollThreshold);
 
     // call the `next` function in the props to trigger the next data fetch
-    if (atBottom && this.props.hasMore) {
+    if (atBottom && this.props.hasMore && !this.state.actionTriggered && !this.state.showLoader) {
       this.setState({ actionTriggered: true, showLoader: true });
       this.props.next();
     }
-    this.setState({ lastScrollTop: target.scrollTop });
+    this.setState({ lastScrollTop: target.scrollTop, actionTriggered: false });
   }
 
   render() {
