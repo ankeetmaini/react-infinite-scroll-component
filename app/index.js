@@ -160,10 +160,7 @@ export default class InfiniteScroll extends Component {
   }
 
   isElementAtBottom(target, scrollThreshold = 0.8) {
-    const clientHeight =
-      target === document.body || target === document.documentElement
-        ? window.screen.availHeight
-        : target.clientHeight;
+    const clientHeight = target.clientHeight;
 
     const threshold = parseThreshold(scrollThreshold);
 
