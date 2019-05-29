@@ -35,7 +35,7 @@ export default class InfiniteScroll extends Component {
     this.el = this.props.height
       ? this._infScroll
       : this._scrollableNode || window;
-	  this.el.addEventListener("touchmove", this.throttledOnScrollListener);
+    this.el.addEventListener("touchmove", this.throttledOnScrollListener);
     this.el.addEventListener("scroll", this.throttledOnScrollListener);
 
     if (
