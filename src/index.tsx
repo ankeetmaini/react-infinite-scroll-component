@@ -1,28 +1,42 @@
-import React, { Component } from "react";
+import React, { Component, ReactNode, CSSProperties } from "react";
 import PropTypes from "prop-types";
 import throttle from "./utils/throttle";
 import { ThresholdUnits, parseThreshold } from "./utils/threshold";
+type Fn = () => any;
+interface Props {
+  next: Fn;
+  hasMore: ReactNode;
+  children: ReactNode;
+  loader: ReactNode;
+  scrollThreshold: number | string;
+  endMessage: ReactNode;
+  style: CSSProperties;
+  height: number;
+  scrollableTarget: ReactNode;
+  hasChildren: ReactNode;
+  pullDownToRefresh: ReactNode;
+  pullDownToRefreshContent: ReactNode;
+  releaseToRefreshContent: ReactNode;
+  pullDownToRefreshThreshold: number;
+  refreshFunction: Fn;
+  onScroll: Fn;
+  dataLength: number;
+}
 
-export default class InfiniteScroll extends Component {
-  constructor(props) {
+interface State {
+  showLoader: boolean;
+  pullToRefreshThresholdBreached: boolean;
+}
+
+export default class InfiniteScroll extends Component<Props, State> {
+  private throttledOnScrollListener: () => void;
+  constructor(props: Props) {
     super(props);
-
-    this.lastScrollTop = 0;
-    this.actionTriggered = false;
 
     this.state = {
       showLoader: false,
       pullToRefreshThresholdBreached: false
     };
-
-    // variables to keep track of pull down behaviour
-    this.startY = 0;
-    this.currentY = 0;
-    this.dragging = false;
-
-    // will be populated in componentDidMount
-    // based on the height of the pull down element
-    this.maxPullDownDistance = 0;
 
     this.onScrollListener = this.onScrollListener.bind(this);
     this.throttledOnScrollListener = throttle(this.onScrollListener, 150).bind(
@@ -34,6 +48,17 @@ export default class InfiniteScroll extends Component {
     this.getScrollableTarget = this.getScrollableTarget.bind(this);
   }
 
+  private lastScrollTop = 0;
+  private actionTriggered = false;
+
+  // variables to keep track of pull down behaviour
+  private startY = 0;
+  private currentY = 0;
+  private dragging = false;
+
+  // will be populated in componentDidMount
+  // based on the height of the pull down element
+  private maxPullDownDistance = 0;
   componentDidMount() {
     this._scrollableNode = this.getScrollableTarget();
     this.el = this.props.height
@@ -87,7 +112,11 @@ export default class InfiniteScroll extends Component {
 
   componentWillReceiveProps(props) {
     // do nothing when dataLength and key are unchanged
-    if (this.props.key === props.key && this.props.dataLength === props.dataLength) return;
+    if (
+      this.props.key === props.key &&
+      this.props.dataLength === props.dataLength
+    )
+      return;
 
     this.actionTriggered = false;
     // update state when new data was sent in
@@ -98,8 +127,9 @@ export default class InfiniteScroll extends Component {
   }
 
   getScrollableTarget() {
-    if (this.props.scrollableTarget instanceof HTMLElement) return this.props.scrollableTarget;
-    if (typeof this.props.scrollableTarget === 'string') {
+    if (this.props.scrollableTarget instanceof HTMLElement)
+      return this.props.scrollableTarget;
+    if (typeof this.props.scrollableTarget === "string") {
       return document.getElementById(this.props.scrollableTarget);
     }
     if (this.props.scrollableTarget === null) {
@@ -156,9 +186,9 @@ export default class InfiniteScroll extends Component {
     requestAnimationFrame(() => {
       // this._infScroll
       if (this._infScroll) {
-          this._infScroll.style.overflow = "auto";
-          this._infScroll.style.transform = "none";
-          this._infScroll.style.willChange = "none";
+        this._infScroll.style.overflow = "auto";
+        this._infScroll.style.transform = "none";
+        this._infScroll.style.willChange = "none";
       }
     });
   }
@@ -178,7 +208,8 @@ export default class InfiniteScroll extends Component {
     }
 
     return (
-      target.scrollTop + clientHeight >= threshold.value / 100 * target.scrollHeight
+      target.scrollTop + clientHeight >=
+      (threshold.value / 100) * target.scrollHeight
     );
   }
 
@@ -193,8 +224,8 @@ export default class InfiniteScroll extends Component {
       this.props.height || this._scrollableNode
         ? event.target
         : document.documentElement.scrollTop
-          ? document.documentElement
-          : document.body;
+        ? document.documentElement
+        : document.body;
 
     // return immediately if the action has already been triggered,
     // prevents multiple triggers.
@@ -232,7 +263,7 @@ export default class InfiniteScroll extends Component {
     return (
       <div style={outerDivStyle}>
         <div
-          className={`infinite-scroll-component ${this.props.className || ''}`}
+          className={`infinite-scroll-component ${this.props.className || ""}`}
           ref={infScroll => (this._infScroll = infScroll)}
           style={style}
         >
