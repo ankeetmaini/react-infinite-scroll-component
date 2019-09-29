@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development node server.js",
     "build-demos": "NODE_ENV=development node_modules/.bin/webpack",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "sprepublish": "NODE_ENV=production node_modules/.bin/webpack --config webpack.config.js"
   },
   "directories": {
@@ -35,18 +35,26 @@
     "react": ">=0.14.0"
   },
   "devDependencies": {
+    "@types/enzyme": "^3.10.3",
+    "@types/enzyme-adapter-react-15": "^1.0.5",
+    "@types/jest": "^24.0.18",
     "@types/react-dom": "^16.9.1",
     "babel": "^6.23.0",
     "babel-core": "^6.26.3",
     "babel-eslint": "^10.0.3",
     "babel-loader": "7",
+    "enzyme": "^3.10.0",
+    "enzyme-adapter-react-15": "^1.4.0",
     "eslint-plugin-react": "^3.5.1",
     "html-loader": "^0.4.3",
     "html-webpack-plugin": "^3.2.0",
+    "jest": "^24.9.0",
     "prop-types": "~15.5.8",
     "react": "~15.5.4",
     "react-dom": "~15.5.4",
     "react-hot-loader": "^1.3.0",
+    "react-test-renderer": "^15.5.0",
+    "ts-jest": "^24.1.0",
     "ts-loader": "^6.1.2",
     "typescript": "^3.6.3",
     "webpack": "^4.41.0",
