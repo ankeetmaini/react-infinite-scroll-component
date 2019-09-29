@@ -49,11 +49,57 @@ describe('React Infinite Scroll Component', () => {
       );
 
       const scrollEvent = new Event('scroll');
-      const node = wrapper.find('.infinite-scroll-component').instance() as unknown as EventTarget;
+      const node = wrapper.find('.infinite-scroll-component').instance() as any;
       node.dispatchEvent(scrollEvent);
       jest.runOnlyPendingTimers();
       expect(setTimeout).toHaveBeenCalledTimes(1);
       expect(onScrollMock).toHaveBeenCalled();
     })
+  });
+
+  describe('When user scrolls to the bottom', () => {
+
+    it('shows loader if hasMore is true', () => {
+      const wrapper = mount(
+        <InfiniteScroll 
+          dataLength={4} 
+          loader={"Loading..."}
+          hasMore={true}
+          scrollThreshold={0}
+        />
+      );
+      
+      const scrollEvent = new Event('scroll');
+      const node = wrapper.find('.infinite-scroll-component').instance() as any;
+      node.dispatchEvent(scrollEvent);
+      expect(wrapper.text()).toContain('Loading...')
+    });
+    
+    it('does not show loader if hasMore is false', () => {
+      const wrapper = mount(
+        <InfiniteScroll 
+          dataLength={4} 
+          loader={"Loading..."}
+          hasMore={false}
+          scrollThreshold={0}
+        />
+      );
+      
+      const scrollEvent = new Event('scroll');
+      const node = wrapper.find('.infinite-scroll-component').instance() as any;
+      node.dispatchEvent(scrollEvent);
+      expect(wrapper.text()).not.toContain('Loading...')
+    });
+  });
+
+  it('shows end message', () => {
+    const wrapper = shallow((
+      <InfiniteScroll
+        dataLength={4} 
+        loader={"Loading..."}
+        endMessage={"Reached end."}
+      /> 
+    ));
+    expect(wrapper.text()).toContain('Reached end.');
   })
 });
