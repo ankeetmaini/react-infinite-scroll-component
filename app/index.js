@@ -8,11 +8,13 @@ export default class InfiniteScroll extends Component {
     super(props);
 
     this.lastScrollTop = 0;
-    this.actionTriggered = false;
 
     this.state = {
+      actionTriggered: false,
       showLoader: false,
-      pullToRefreshThresholdBreached: false
+      pullToRefreshThresholdBreached: false,
+      previousKey: undefined,
+      previousDataLength: undefined
     };
 
     // variables to keep track of pull down behaviour
@@ -32,6 +34,22 @@ export default class InfiniteScroll extends Component {
     this.onMove = this.onMove.bind(this);
     this.onEnd = this.onEnd.bind(this);
     this.getScrollableTarget = this.getScrollableTarget.bind(this);
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    const { dataLength, key } = props;
+    // do nothing when dataLength and key are unchanged
+    if (state.previousKey === key && state.previousDataLength === dataLength) return null;
+
+    // return the updated state when new data was sent in
+    return {
+      ...state,
+      actionTriggered: false,
+      showLoader: false,
+      pullToRefreshThresholdBreached: false,
+      previousKey: key,
+      previousDataLength: dataLength,
+    }
   }
 
   componentDidMount() {
@@ -83,18 +101,6 @@ export default class InfiniteScroll extends Component {
       this.el.removeEventListener("mousemove", this.onMove);
       this.el.removeEventListener("mouseup", this.onEnd);
     }
-  }
-
-  componentWillReceiveProps(props) {
-    // do nothing when dataLength and key are unchanged
-    if (this.props.key === props.key && this.props.dataLength === props.dataLength) return;
-
-    this.actionTriggered = false;
-    // update state when new data was sent in
-    this.setState({
-      showLoader: false,
-      pullToRefreshThresholdBreached: false
-    });
   }
 
   getScrollableTarget() {
@@ -198,14 +204,13 @@ export default class InfiniteScroll extends Component {
 
     // return immediately if the action has already been triggered,
     // prevents multiple triggers.
-    if (this.actionTriggered) return;
+    if (this.state.actionTriggered) return;
 
     let atBottom = this.isElementAtBottom(target, this.props.scrollThreshold);
 
     // call the `next` function in the props to trigger the next data fetch
     if (atBottom && this.props.hasMore) {
-      this.actionTriggered = true;
-      this.setState({ showLoader: true });
+      this.setState({ actionTriggered: true, showLoader: true });
       this.props.next();
     }
 
