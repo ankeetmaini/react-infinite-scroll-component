@@ -41,6 +41,21 @@ describe('React Infinite Scroll Component', () => {
     expect(container.querySelectorAll('.custom-class').length).toBe(1);
   });
 
+  it('renders custom id', () => {
+    const { container } = render(
+      <InfiniteScroll
+        dataLength={4}
+        loader={'Loading...'}
+        id="custom-id"
+        hasMore={false}
+        next={() => {}}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+    expect(container.querySelectorAll('#custom-id').length).toBe(1);
+  });
+
   it('renders children when passed in', () => {
     const { container } = render(
       <InfiniteScroll

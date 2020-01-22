@@ -24,6 +24,7 @@ export interface Props {
   initialScrollY?: number;
   key?: string;
   className?: string;
+  id?: string;
 }
 
 interface State {
@@ -101,7 +102,7 @@ export default class InfiniteScroll extends Component<Props, State> {
       this.el.addEventListener('mousemove', this.onMove);
       this.el.addEventListener('mouseup', this.onEnd);
 
-      // get BCR of pullDown element to position it above
+      // get BCR (Bounding Client Rectangle) of pullDown element to position it above
       this.maxPullDownDistance =
         (this._pullDown &&
           this._pullDown.firstChild &&
@@ -320,6 +321,7 @@ export default class InfiniteScroll extends Component<Props, State> {
           className={`infinite-scroll-component ${this.props.className || ''}`}
           ref={(infScroll: HTMLDivElement) => (this._infScroll = infScroll)}
           style={style}
+          id={`${this.props.id || ''}`}
         >
           {this.props.pullDownToRefresh && (
             <div
