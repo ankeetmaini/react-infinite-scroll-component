@@ -7,6 +7,7 @@ const style = {
   border: '1px solid green',
   margin: 6,
   padding: 8,
+  backgroundColor: 'white',
 };
 
 export default class App extends React.Component {
@@ -40,6 +41,7 @@ export default class App extends React.Component {
               &#8595; Pull down to refresh
             </h3>
           }
+          // pullDownToRefreshContentOnTop
           releaseToRefreshContent={
             <h3 style={{ textAlign: 'center' }}>&#8593; Release to refresh</h3>
           }
