@@ -29,6 +29,8 @@ export interface Props {
 interface State {
   showLoader: boolean;
   pullToRefreshThresholdBreached: boolean;
+  prevKey: string | undefined;
+  prevDataLength: number | undefined;
 }
 
 export default class InfiniteScroll extends Component<Props, State> {
@@ -38,6 +40,8 @@ export default class InfiniteScroll extends Component<Props, State> {
     this.state = {
       showLoader: false,
       pullToRefreshThresholdBreached: false,
+      prevKey: props.key,
+      prevDataLength: props.dataLength,
     };
 
     this.throttledOnScrollListener = throttle(150, this.onScrollListener).bind(
@@ -137,7 +141,7 @@ export default class InfiniteScroll extends Component<Props, State> {
     }
   }
 
-  UNSAFE_componentWillReceiveProps(props: Props) {
+  componentDidUpdate(props: Props) {
     // do nothing when dataLength and key are unchanged
     if (
       this.props.key === props.key &&
@@ -146,11 +150,25 @@ export default class InfiniteScroll extends Component<Props, State> {
       return;
 
     this.actionTriggered = false;
-    // update state when new data was sent in
-    this.setState({
-      showLoader: false,
-      pullToRefreshThresholdBreached: false,
-    });
+  }
+
+  static getDerivedStateFromProps(
+    props: Props,
+    state: State
+  ): Partial<State> | null {
+    const keyChanged = props.key !== state.prevKey;
+    const dataLengthChanged = props.dataLength !== state.prevDataLength;
+
+    // reset when data changes
+    if (keyChanged || dataLengthChanged) {
+      return {
+        showLoader: false,
+        pullToRefreshThresholdBreached: false,
+        prevKey: props.key,
+        prevDataLength: props.dataLength,
+      };
+    }
+    return null;
   }
 
   getScrollableTarget = () => {
