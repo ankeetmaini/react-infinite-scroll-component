@@ -3,6 +3,7 @@ import { throttle } from 'throttle-debounce';
 import { ThresholdUnits, parseThreshold } from './utils/threshold';
 
 type Fn = () => any;
+
 export interface Props {
   next: Fn;
   hasMore: boolean;
