@@ -14,6 +14,7 @@ export interface Props {
   height?: number | string;
   scrollableTarget?: ReactNode;
   hasChildren?: boolean;
+  inverse?: boolean;
   pullDownToRefresh?: boolean;
   pullDownToRefreshOnlyOnTouchEvents?: boolean;
   pullDownToRefreshContent?: ReactNode;
@@ -23,7 +24,6 @@ export interface Props {
   onScroll?: (e: MouseEvent) => any;
   dataLength: number;
   initialScrollY?: number;
-  key?: string;
   className?: string;
 }
 
@@ -149,18 +149,13 @@ export default class InfiniteScroll extends Component<Props, State> {
   }
 
   UNSAFE_componentWillReceiveProps(props: Props) {
-    // do nothing when dataLength and key are unchanged
-    if (
-      this.props.key === props.key &&
-      this.props.dataLength === props.dataLength
-    )
-      return;
+    // do nothing when dataLength is unchanged
+    if (this.props.dataLength === props.dataLength) return;
 
     this.actionTriggered = false;
     // update state when new data was sent in
     this.setState({
       showLoader: false,
-      pullToRefreshThresholdBreached: false,
     });
   }
 
@@ -236,6 +231,9 @@ export default class InfiniteScroll extends Component<Props, State> {
 
     if (this.state.pullToRefreshThresholdBreached) {
       this.props.refreshFunction && this.props.refreshFunction();
+      this.setState({
+        pullToRefreshThresholdBreached: false,
+      });
     }
 
     requestAnimationFrame(() => {
@@ -243,10 +241,31 @@ export default class InfiniteScroll extends Component<Props, State> {
       if (this._infScroll) {
         this._infScroll.style.overflow = 'auto';
         this._infScroll.style.transform = 'none';
-        this._infScroll.style.willChange = 'none';
+        this._infScroll.style.willChange = 'unset';
       }
     });
   };
+
+  isElementAtTop(target: HTMLElement, scrollThreshold: string | number = 0.8) {
+    const clientHeight =
+      target === document.body || target === document.documentElement
+        ? window.screen.availHeight
+        : target.clientHeight;
+
+    const threshold = parseThreshold(scrollThreshold);
+
+    if (threshold.unit === ThresholdUnits.Pixel) {
+      return (
+        target.scrollTop <=
+        threshold.value + clientHeight - target.scrollHeight + 1
+      );
+    }
+
+    return (
+      target.scrollTop <=
+      threshold.value / 100 + clientHeight - target.scrollHeight + 1
+    );
+  }
 
   isElementAtBottom(
     target: HTMLElement,
@@ -289,7 +308,9 @@ export default class InfiniteScroll extends Component<Props, State> {
     // prevents multiple triggers.
     if (this.actionTriggered) return;
 
-    const atBottom = this.isElementAtBottom(target, this.props.scrollThreshold);
+    const atBottom = this.props.inverse
+      ? this.isElementAtTop(target, this.props.scrollThreshold)
+      : this.isElementAtBottom(target, this.props.scrollThreshold);
 
     // call the `next` function in the props to trigger the next data fetch
     if (atBottom && this.props.hasMore) {
