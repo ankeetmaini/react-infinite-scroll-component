@@ -98,10 +98,7 @@ export default class InfiniteScroll extends Component<Props, State> {
       this.el.addEventListener('touchmove', this.onMove);
       this.el.addEventListener('touchend', this.onEnd);
 
-      if (
-        this.props.pullDownToRefreshOnlyOnTouchEvents !== undefined &&
-        !this.props.pullDownToRefreshOnlyOnTouchEvents
-      ) {
+      if (!this.props.pullDownToRefreshOnlyOnTouchEvents) {
         this.el.addEventListener('mousedown', this.onStart);
         this.el.addEventListener('mousemove', this.onMove);
         this.el.addEventListener('mouseup', this.onEnd);
@@ -136,10 +133,7 @@ export default class InfiniteScroll extends Component<Props, State> {
         this.el.removeEventListener('touchmove', this.onMove);
         this.el.removeEventListener('touchend', this.onEnd);
 
-        if (
-          this.props.pullDownToRefreshOnlyOnTouchEvents !== undefined &&
-          !this.props.pullDownToRefreshOnlyOnTouchEvents
-        ) {
+        if (!this.props.pullDownToRefreshOnlyOnTouchEvents) {
           this.el.removeEventListener('mousedown', this.onStart);
           this.el.removeEventListener('mousemove', this.onMove);
           this.el.removeEventListener('mouseup', this.onEnd);
