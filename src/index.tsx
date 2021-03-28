@@ -29,6 +29,7 @@ export interface Props {
 interface State {
   showLoader: boolean;
   pullToRefreshThresholdBreached: boolean;
+  prevDataLength: number | undefined;
 }
 
 export default class InfiniteScroll extends Component<Props, State> {
