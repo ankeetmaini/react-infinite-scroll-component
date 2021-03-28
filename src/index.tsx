@@ -29,6 +29,7 @@ export interface Props {
 interface State {
   showLoader: boolean;
   pullToRefreshThresholdBreached: boolean;
+  prevDataLength: number | undefined;
 }
 
 export default class InfiniteScroll extends Component<Props, State> {
@@ -38,6 +39,7 @@ export default class InfiniteScroll extends Component<Props, State> {
     this.state = {
       showLoader: false,
       pullToRefreshThresholdBreached: false,
+      prevDataLength: props.dataLength,
     };
 
     this.throttledOnScrollListener = throttle(150, this.onScrollListener).bind(
@@ -137,15 +139,25 @@ export default class InfiniteScroll extends Component<Props, State> {
     }
   }
 
-  UNSAFE_componentWillReceiveProps(props: Props) {
+  componentDidUpdate(prevProps: Props) {
     // do nothing when dataLength is unchanged
-    if (this.props.dataLength === props.dataLength) return;
+    if (this.props.dataLength === prevProps.dataLength) return;
 
     this.actionTriggered = false;
-    // update state when new data was sent in
-    this.setState({
-      showLoader: false,
-    });
+  }
+
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    const dataLengthChanged = nextProps.dataLength !== prevState.prevDataLength;
+
+    // reset when data changes
+    if (dataLengthChanged) {
+      return {
+        ...prevState,
+        prevDataLength: nextProps.dataLength,
+        showLoader: false,
+      };
+    }
+    return null;
   }
 
   getScrollableTarget = () => {
