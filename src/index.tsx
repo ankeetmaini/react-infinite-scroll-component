@@ -16,6 +16,7 @@ export interface Props {
   hasChildren?: boolean;
   inverse?: boolean;
   pullDownToRefresh?: boolean;
+  pullDownToRefreshOnlyOnTouchEvents?: boolean;
   pullDownToRefreshContent?: ReactNode;
   releaseToRefreshContent?: ReactNode;
   pullDownToRefreshThreshold?: number;
@@ -99,9 +100,11 @@ export default class InfiniteScroll extends Component<Props, State> {
       this.el.addEventListener('touchmove', this.onMove);
       this.el.addEventListener('touchend', this.onEnd);
 
-      this.el.addEventListener('mousedown', this.onStart);
-      this.el.addEventListener('mousemove', this.onMove);
-      this.el.addEventListener('mouseup', this.onEnd);
+      if (!this.props.pullDownToRefreshOnlyOnTouchEvents) {
+        this.el.addEventListener('mousedown', this.onStart);
+        this.el.addEventListener('mousemove', this.onMove);
+        this.el.addEventListener('mouseup', this.onEnd);
+      }
 
       // get BCR of pullDown element to position it above
       this.maxPullDownDistance =
@@ -132,9 +135,11 @@ export default class InfiniteScroll extends Component<Props, State> {
         this.el.removeEventListener('touchmove', this.onMove);
         this.el.removeEventListener('touchend', this.onEnd);
 
-        this.el.removeEventListener('mousedown', this.onStart);
-        this.el.removeEventListener('mousemove', this.onMove);
-        this.el.removeEventListener('mouseup', this.onEnd);
+        if (!this.props.pullDownToRefreshOnlyOnTouchEvents) {
+          this.el.removeEventListener('mousedown', this.onStart);
+          this.el.removeEventListener('mousemove', this.onMove);
+          this.el.removeEventListener('mouseup', this.onEnd);
+        }
       }
     }
   }
