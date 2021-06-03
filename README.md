@@ -6,7 +6,7 @@
 A component to make all your infinite scrolling woes go away with just 4.15 kB! `Pull Down to Refresh` feature
 added. An infinite-scroll that actually works and super-simple to integrate!
 
-## Install
+## Installation
 
 ```bash
   npm install --save react-infinite-scroll-component
@@ -15,26 +15,28 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 
   yarn add react-infinite-scroll-component
 
-  // in code ES6
+  // ES6 syntax
   import InfiniteScroll from 'react-infinite-scroll-component';
-  // or commonjs
+
+  // ES5 syntax
   var InfiniteScroll = require('react-infinite-scroll-component');
 ```
 
-## Using
+## Usage
 
 ```jsx
 <InfiniteScroll
-  dataLength={items.length} //This is important field to render the next data
+  dataLength={items.length} // To render the next data
   next={fetchData}
-  hasMore={true}
+  hasMore={true} // To stop infinite scrolling
   loader={<h4>Loading...</h4>}
   endMessage={
     <p style={{ textAlign: 'center' }}>
       <b>Yay! You have seen it all</b>
     </p>
   }
-  // below props only if you need pull down functionality
+
+  // Below props only works if you need pull down functionality
   refreshFunction={this.refresh}
   pullDownToRefresh
   pullDownToRefreshThreshold={50}
@@ -49,7 +51,7 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 </InfiniteScroll>
 ```
 
-## Using scroll on top
+## Using Scroll On Top
 
 ```jsx
 <div
@@ -86,22 +88,25 @@ The `InfiniteScroll` component can be used in three ways.
 - If your **scrollable** content is being rendered within a parent element that is already providing overflow scrollbars, you can set the `scrollableTarget` prop to reference the DOM element and use it's scrollbars for fetching more data.
 - Without setting either the `height` or `scrollableTarget` props, the scroll will happen at `document.body` like _Facebook's_ timeline scroll.
 
-## docs version wise
+## Docs Versions
 
 [3.0.2](docs/README-3.0.2.md)
 
-## live examples
+## Live Examples
 
 - infinite scroll (never ending) example using react (body/window scroll)
   - [![Edit yk7637p62z](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/yk7637p62z)
+  
 - infinte scroll till 500 elements (body/window scroll)
   - [![Edit 439v8rmqm0](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/439v8rmqm0)
+
 - infinite scroll in an element (div of height 400px)
   - [![Edit w3w89k7x8](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/w3w89k7x8)
+
 - infinite scroll with `scrollableTarget` (a parent element which is scrollable)
   - [![Edit r7rp40n0zm](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/r7rp40n0zm)
 
-## props
+## Props
 
 | name                           | type                 | description                                                                                                                                                                                                                                                                                                                                   |
 | ------------------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -128,7 +133,7 @@ The `InfiniteScroll` component can be used in three ways.
 
 ## Contributors ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+We are grateful to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
