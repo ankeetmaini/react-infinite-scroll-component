@@ -308,7 +308,8 @@ export default class InfiniteScroll extends Component<Props, State> {
         : document.documentElement.scrollTop
         ? document.documentElement
         : document.body;
-
+    // to fix Pull to Refresh is disabled when hasMore is flipped to false
+    this.lastScrollTop = target.scrollTop;
     // return immediately if the action has already been triggered,
     // prevents multiple triggers.
     if (this.actionTriggered) return;
@@ -323,8 +324,6 @@ export default class InfiniteScroll extends Component<Props, State> {
       this.setState({ showLoader: true });
       this.props.next && this.props.next();
     }
-
-    this.lastScrollTop = target.scrollTop;
   };
 
   render() {
