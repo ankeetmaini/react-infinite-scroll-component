@@ -1,6 +1,7 @@
 import React, { Component, ReactNode, CSSProperties } from 'react';
 import { throttle } from 'throttle-debounce';
 import { ThresholdUnits, parseThreshold } from './utils/threshold';
+import { supportsPassive } from './utils/passive-event-feature-detection';
 
 type Fn = () => any;
 export interface Props {
@@ -80,9 +81,14 @@ export default class InfiniteScroll extends Component<Props, State> {
       ? this._infScroll
       : this._scrollableNode || window;
 
+    const eventListenerOpts = supportsPassive() ? { passive: true } : false;
+
     if (this.el) {
-      this.el.addEventListener('scroll', this
-        .throttledOnScrollListener as EventListenerOrEventListenerObject);
+      this.el.addEventListener(
+        'scroll',
+        this.throttledOnScrollListener as EventListenerOrEventListenerObject,
+        eventListenerOpts
+      );
     }
 
     if (
@@ -95,13 +101,13 @@ export default class InfiniteScroll extends Component<Props, State> {
     }
 
     if (this.props.pullDownToRefresh && this.el) {
-      this.el.addEventListener('touchstart', this.onStart);
-      this.el.addEventListener('touchmove', this.onMove);
-      this.el.addEventListener('touchend', this.onEnd);
+      this.el.addEventListener('touchstart', this.onStart, eventListenerOpts);
+      this.el.addEventListener('touchmove', this.onMove, eventListenerOpts);
+      this.el.addEventListener('touchend', this.onEnd, eventListenerOpts);
 
-      this.el.addEventListener('mousedown', this.onStart);
-      this.el.addEventListener('mousemove', this.onMove);
-      this.el.addEventListener('mouseup', this.onEnd);
+      this.el.addEventListener('mousedown', this.onStart, eventListenerOpts);
+      this.el.addEventListener('mousemove', this.onMove, eventListenerOpts);
+      this.el.addEventListener('mouseup', this.onEnd, eventListenerOpts);
 
       // get BCR of pullDown element to position it above
       this.maxPullDownDistance =
