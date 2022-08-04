@@ -30,6 +30,7 @@ interface State {
   showLoader: boolean;
   pullToRefreshThresholdBreached: boolean;
   prevDataLength: number | undefined;
+  hasScrollbar: boolean;
 }
 
 export default class InfiniteScroll extends Component<Props, State> {
@@ -40,9 +41,14 @@ export default class InfiniteScroll extends Component<Props, State> {
       showLoader: false,
       pullToRefreshThresholdBreached: false,
       prevDataLength: props.dataLength,
+      hasScrollbar: false,
     };
 
     this.throttledOnScrollListener = throttle(150, this.onScrollListener).bind(
+      this
+    );
+
+    this.throttledWheelListener = throttle(150, this.onWheelListener).bind(
       this
     );
     this.onStart = this.onStart.bind(this);
@@ -51,6 +57,7 @@ export default class InfiniteScroll extends Component<Props, State> {
   }
 
   private throttledOnScrollListener: (e: MouseEvent) => void;
+  private throttledWheelListener: (e: WheelEvent) => void;
   private _scrollableNode: HTMLElement | undefined | null;
   private el: HTMLElement | undefined | Window & typeof globalThis;
   private _infScroll: HTMLDivElement | undefined;
@@ -83,6 +90,8 @@ export default class InfiniteScroll extends Component<Props, State> {
     if (this.el) {
       this.el.addEventListener('scroll', this
         .throttledOnScrollListener as EventListenerOrEventListenerObject);
+      this.el.addEventListener('wheel', this
+        .throttledWheelListener as EventListenerOrEventListenerObject);
     }
 
     if (
@@ -294,6 +303,21 @@ export default class InfiniteScroll extends Component<Props, State> {
       (threshold.value / 100) * target.scrollHeight
     );
   }
+
+  onWheelListener = (event: WheelEvent) => {
+    if (window.pageYOffset > 0) {
+      this.setState({
+        hasScrollbar: true,
+      });
+    } else {
+      this.setState({ hasScrollbar: false });
+    }
+
+    if (!this.state.hasScrollbar && event.deltaY > 0) {
+      // this means user is trying to scroll vertically down
+      this.onScrollListener(event);
+    }
+  };
 
   onScrollListener = (event: MouseEvent) => {
     if (typeof this.props.onScroll === 'function') {
