@@ -268,7 +268,7 @@ export default class InfiniteScroll extends Component<Props, State> {
 
     return (
       target.scrollTop <=
-      threshold.value / 100 + clientHeight - target.scrollHeight + 1
+      clientHeight - (threshold.value / 100) * target.scrollHeight + 1
     );
   }
 
