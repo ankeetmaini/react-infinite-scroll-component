@@ -50,6 +50,9 @@ export default class InfiniteScroll extends Component<Props, State> {
     this.onEnd = this.onEnd.bind(this);
   }
 
+  // Fix target loss in shadow DOM by storing the target element
+  private _target: HTMLElement | undefined;
+
   private throttledOnScrollListener: (e: MouseEvent) => void;
   private _scrollableNode: HTMLElement | undefined | null;
   private el: HTMLElement | undefined | Window & typeof globalThis;
@@ -304,14 +307,16 @@ export default class InfiniteScroll extends Component<Props, State> {
 
     const target =
       this.props.height || this._scrollableNode
-        ? (event.target as HTMLElement)
+        ? (event.target as HTMLElement) || this._target
         : document.documentElement.scrollTop
         ? document.documentElement
         : document.body;
 
     // return immediately if the action has already been triggered,
     // prevents multiple triggers.
-    if (this.actionTriggered) return;
+    if (this.actionTriggered || !target) return;
+
+    this._target = target;
 
     const atBottom = this.props.inverse
       ? this.isElementAtTop(target, this.props.scrollThreshold)
