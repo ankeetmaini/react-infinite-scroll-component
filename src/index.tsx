@@ -1,8 +1,15 @@
-import React, { Component, ReactNode, CSSProperties } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type ReactNode,
+  type CSSProperties,
+} from 'react';
 import { throttle } from 'throttle-debounce';
 import { ThresholdUnits, parseThreshold } from './utils/threshold';
 
-type Fn = () => any;
+type Fn = () => unknown;
 export interface Props {
   next: Fn;
   hasMore: boolean;
@@ -20,99 +27,262 @@ export interface Props {
   releaseToRefreshContent?: ReactNode;
   pullDownToRefreshThreshold?: number;
   refreshFunction?: Fn;
-  onScroll?: (e: MouseEvent) => any;
+  onScroll?: (e: MouseEvent) => unknown;
   dataLength: number;
   initialScrollY?: number;
   className?: string;
 }
 
-interface State {
-  showLoader: boolean;
-  pullToRefreshThresholdBreached: boolean;
-  prevDataLength: number | undefined;
-}
+export default function InfiniteScroll({
+  next,
+  hasMore,
+  children,
+  loader,
+  scrollThreshold = 0.8,
+  endMessage,
+  style,
+  height,
+  scrollableTarget,
+  hasChildren,
+  inverse,
+  pullDownToRefresh,
+  pullDownToRefreshContent,
+  releaseToRefreshContent,
+  pullDownToRefreshThreshold = 100,
+  refreshFunction,
+  onScroll,
+  dataLength,
+  initialScrollY,
+  className,
+}: Props) {
+  const [showLoader, setShowLoader] = useState(false);
+  const [pullToRefreshThresholdBreached, setPullToRefreshThresholdBreached] =
+    useState(false);
 
-export default class InfiniteScroll extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
+  const _infScroll = useRef<HTMLDivElement | null>(null);
+  const _pullDown = useRef<HTMLDivElement | null>(null);
+  const actionTriggered = useRef(false);
+  const startY = useRef(0);
+  const currentY = useRef(0);
+  const dragging = useRef(false);
+  const maxPullDownDistance = useRef(0);
+  const lastScrollTop = useRef(0);
 
-    this.state = {
-      showLoader: false,
-      pullToRefreshThresholdBreached: false,
-      prevDataLength: props.dataLength,
-    };
+  // #region handlers
+  const getScrollableTarget = useCallback(() => {
+    if (scrollableTarget instanceof HTMLElement) return scrollableTarget;
+    if (typeof scrollableTarget === 'string') {
+      return document.getElementById(scrollableTarget);
+    }
+    if (scrollableTarget === null) {
+      console.warn(`You are trying to pass scrollableTarget but it is null. This might
+        happen because the element may not have been added to DOM yet.
+        See https://github.com/ankeetmaini/react-infinite-scroll-component/issues/59 for more info.
+      `);
+    }
+    return null;
+  }, [scrollableTarget]);
 
-    this.throttledOnScrollListener = throttle(150, this.onScrollListener).bind(
-      this
-    );
-    this.onStart = this.onStart.bind(this);
-    this.onMove = this.onMove.bind(this);
-    this.onEnd = this.onEnd.bind(this);
-  }
+  const isElementAtTop = useCallback(
+    (target: HTMLElement, scrollThreshold: string | number = 0.8) => {
+      const clientHeight =
+        target === document.body || target === document.documentElement
+          ? window.screen.availHeight
+          : target.clientHeight;
 
-  private throttledOnScrollListener: (e: MouseEvent) => void;
-  private _scrollableNode: HTMLElement | undefined | null;
-  private el: HTMLElement | undefined | Window & typeof globalThis;
-  private _infScroll: HTMLDivElement | undefined;
-  private lastScrollTop = 0;
-  private actionTriggered = false;
-  private _pullDown: HTMLDivElement | undefined;
+      const threshold = parseThreshold(scrollThreshold);
 
-  // variables to keep track of pull down behaviour
-  private startY = 0;
-  private currentY = 0;
-  private dragging = false;
+      if (threshold.unit === ThresholdUnits.Pixel) {
+        return (
+          target.scrollTop <=
+          threshold.value + clientHeight - target.scrollHeight + 1
+        );
+      }
 
-  // will be populated in componentDidMount
-  // based on the height of the pull down element
-  private maxPullDownDistance = 0;
+      return (
+        target.scrollTop <=
+        threshold.value / 100 + clientHeight - target.scrollHeight + 1
+      );
+    },
+    []
+  );
 
-  componentDidMount() {
-    if (typeof this.props.dataLength === 'undefined') {
+  const isElementAtBottom = useCallback(
+    (target: HTMLElement, scrollThreshold: string | number = 0.8) => {
+      const clientHeight =
+        target === document.body || target === document.documentElement
+          ? window.screen.availHeight
+          : target.clientHeight;
+
+      const threshold = parseThreshold(scrollThreshold);
+
+      if (threshold.unit === ThresholdUnits.Pixel) {
+        return (
+          target.scrollTop + clientHeight >=
+          target.scrollHeight - threshold.value
+        );
+      }
+
+      return (
+        target.scrollTop + clientHeight >=
+        (threshold.value / 100) * target.scrollHeight
+      );
+    },
+    []
+  );
+
+  const onScrollListener = useCallback(
+    (event: Event) => {
+      if (typeof onScroll === 'function') {
+        setTimeout(() => onScroll && onScroll(event as MouseEvent), 0);
+      }
+
+      const target =
+        height || getScrollableTarget()
+          ? (event.target as HTMLElement)
+          : document.documentElement.scrollTop
+            ? document.documentElement
+            : document.body;
+
+      if (actionTriggered.current) return;
+
+      const atBottom = inverse
+        ? isElementAtTop(target, scrollThreshold)
+        : isElementAtBottom(target, scrollThreshold);
+
+      if (atBottom && hasMore) {
+        actionTriggered.current = true;
+        setShowLoader(true);
+        next();
+      }
+
+      lastScrollTop.current = target.scrollTop;
+    },
+    [
+      getScrollableTarget,
+      hasMore,
+      height,
+      inverse,
+      isElementAtBottom,
+      isElementAtTop,
+      next,
+      onScroll,
+      scrollThreshold,
+    ]
+  );
+
+  const onStart = useCallback((evt: Event) => {
+    if (lastScrollTop.current) return;
+
+    dragging.current = true;
+
+    if (evt instanceof MouseEvent) {
+      startY.current = evt.pageY;
+    } else if (evt instanceof TouchEvent) {
+      startY.current = evt.touches[0].pageY;
+    }
+    currentY.current = startY.current;
+
+    if (_infScroll.current) {
+      _infScroll.current.style.willChange = 'transform';
+      _infScroll.current.style.transition = `transform 0.2s cubic-bezier(0,0,0.31,1)`;
+    }
+  }, []);
+
+  const onMove = useCallback(
+    (evt: Event) => {
+      if (!dragging.current) return;
+
+      if (evt instanceof MouseEvent) {
+        currentY.current = evt.pageY;
+      } else if (evt instanceof TouchEvent) {
+        currentY.current = evt.touches[0].pageY;
+      }
+
+      if (currentY.current < startY.current) return;
+
+      if (currentY.current - startY.current >= pullDownToRefreshThreshold) {
+        setPullToRefreshThresholdBreached(true);
+      }
+
+      if (currentY.current - startY.current > maxPullDownDistance.current * 1.5)
+        return;
+
+      if (_infScroll.current) {
+        _infScroll.current.style.overflow = 'visible';
+        _infScroll.current.style.transform = `translate3d(0px, ${
+          currentY.current - startY.current
+        }px, 0px)`;
+      }
+    },
+    [pullDownToRefreshThreshold]
+  );
+
+  const onEnd = useCallback(() => {
+    startY.current = 0;
+    currentY.current = 0;
+
+    dragging.current = false;
+
+    if (pullToRefreshThresholdBreached) {
+      refreshFunction?.();
+      setPullToRefreshThresholdBreached(false);
+    }
+
+    requestAnimationFrame(() => {
+      if (_infScroll.current) {
+        _infScroll.current.style.overflow = 'auto';
+        _infScroll.current.style.transform = 'none';
+        _infScroll.current.style.willChange = 'unset';
+      }
+    });
+  }, [pullToRefreshThresholdBreached, refreshFunction]);
+  // #endregion
+
+  // #region useEffect
+  const throttledOnScrollListener = throttle(150, onScrollListener);
+  useEffect(() => {
+    if (typeof dataLength === 'undefined') {
       throw new Error(
         `mandatory prop "dataLength" is missing. The prop is needed` +
           ` when loading more content. Check README.md for usage`
       );
     }
 
-    this._scrollableNode = this.getScrollableTarget();
-    this.el = this.props.height
-      ? this._infScroll
-      : this._scrollableNode || window;
+    const scrollableNode = getScrollableTarget();
+    const el = height ? _infScroll.current : scrollableNode || window;
 
-    if (this.el) {
-      this.el.addEventListener('scroll', this
-        .throttledOnScrollListener as EventListenerOrEventListenerObject);
+    if (el) {
+      el.addEventListener('scroll', throttledOnScrollListener);
     }
 
     if (
-      typeof this.props.initialScrollY === 'number' &&
-      this.el &&
-      this.el instanceof HTMLElement &&
-      this.el.scrollHeight > this.props.initialScrollY
+      typeof initialScrollY === 'number' &&
+      el &&
+      el instanceof HTMLElement &&
+      el.scrollHeight > initialScrollY
     ) {
-      this.el.scrollTo(0, this.props.initialScrollY);
+      el.scrollTo(0, initialScrollY);
     }
 
-    if (this.props.pullDownToRefresh && this.el) {
-      this.el.addEventListener('touchstart', this.onStart);
-      this.el.addEventListener('touchmove', this.onMove);
-      this.el.addEventListener('touchend', this.onEnd);
+    if (pullDownToRefresh && el) {
+      el.addEventListener('touchstart', onStart);
+      el.addEventListener('touchmove', onMove);
+      el.addEventListener('touchend', onEnd);
 
-      this.el.addEventListener('mousedown', this.onStart);
-      this.el.addEventListener('mousemove', this.onMove);
-      this.el.addEventListener('mouseup', this.onEnd);
+      el.addEventListener('mousedown', onStart);
+      el.addEventListener('mousemove', onMove);
+      el.addEventListener('mouseup', onEnd);
 
-      // get BCR of pullDown element to position it above
-      this.maxPullDownDistance =
-        (this._pullDown &&
-          this._pullDown.firstChild &&
-          (this._pullDown.firstChild as HTMLDivElement).getBoundingClientRect()
-            .height) ||
+      maxPullDownDistance.current =
+        (_pullDown.current &&
+          _pullDown.current.firstChild &&
+          (
+            _pullDown.current.firstChild as HTMLDivElement
+          ).getBoundingClientRect().height) ||
         0;
-      this.forceUpdate();
 
-      if (typeof this.props.refreshFunction !== 'function') {
+      if (typeof refreshFunction !== 'function') {
         throw new Error(
           `Mandatory prop "refreshFunction" missing.
           Pull Down To Refresh functionality will not work
@@ -120,272 +290,83 @@ export default class InfiniteScroll extends Component<Props, State> {
         );
       }
     }
-  }
 
-  componentWillUnmount() {
-    if (this.el) {
-      this.el.removeEventListener('scroll', this
-        .throttledOnScrollListener as EventListenerOrEventListenerObject);
+    return () => {
+      if (el) {
+        el.removeEventListener('scroll', throttledOnScrollListener);
 
-      if (this.props.pullDownToRefresh) {
-        this.el.removeEventListener('touchstart', this.onStart);
-        this.el.removeEventListener('touchmove', this.onMove);
-        this.el.removeEventListener('touchend', this.onEnd);
+        if (pullDownToRefresh) {
+          el.removeEventListener('touchstart', onStart);
+          el.removeEventListener('touchmove', onMove);
+          el.removeEventListener('touchend', onEnd);
 
-        this.el.removeEventListener('mousedown', this.onStart);
-        this.el.removeEventListener('mousemove', this.onMove);
-        this.el.removeEventListener('mouseup', this.onEnd);
+          el.addEventListener('mousedown', onStart);
+          el.addEventListener('mousemove', onMove);
+          el.addEventListener('mouseup', onEnd);
+        }
       }
-    }
-  }
+    };
+  }, [
+    throttledOnScrollListener,
+    getScrollableTarget,
+    dataLength,
+    height,
+    initialScrollY,
+    pullDownToRefresh,
+    refreshFunction,
+    onStart,
+    onMove,
+    onEnd,
+  ]);
 
-  componentDidUpdate(prevProps: Props) {
-    // do nothing when dataLength is unchanged
-    if (this.props.dataLength === prevProps.dataLength) return;
+  useEffect(() => {
+    actionTriggered.current = false;
+    setShowLoader(false);
+  }, [dataLength]);
+  // #endregion
 
-    this.actionTriggered = false;
+  // #region composition
+  const componentStyle = {
+    height: height || 'auto',
+    overflow: 'auto',
+    WebkitOverflowScrolling: 'touch',
+    ...style,
+  } as CSSProperties;
 
-    // update state when new data was sent in
-    this.setState({
-      showLoader: false,
-    });
-  }
+  const outerDivStyle = pullDownToRefresh && height ? { overflow: 'auto' } : {};
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    const dataLengthChanged = nextProps.dataLength !== prevState.prevDataLength;
+  const hasChildrenProp =
+    hasChildren || !!(children && Array.isArray(children) && children.length);
 
-    // reset when data changes
-    if (dataLengthChanged) {
-      return {
-        ...prevState,
-        prevDataLength: nextProps.dataLength,
-      };
-    }
-    return null;
-  }
-
-  getScrollableTarget = () => {
-    if (this.props.scrollableTarget instanceof HTMLElement)
-      return this.props.scrollableTarget;
-    if (typeof this.props.scrollableTarget === 'string') {
-      return document.getElementById(this.props.scrollableTarget);
-    }
-    if (this.props.scrollableTarget === null) {
-      console.warn(`You are trying to pass scrollableTarget but it is null. This might
-        happen because the element may not have been added to DOM yet.
-        See https://github.com/ankeetmaini/react-infinite-scroll-component/issues/59 for more info.
-      `);
-    }
-    return null;
-  };
-
-  onStart: EventListener = (evt: Event) => {
-    if (this.lastScrollTop) return;
-
-    this.dragging = true;
-
-    if (evt instanceof MouseEvent) {
-      this.startY = evt.pageY;
-    } else if (evt instanceof TouchEvent) {
-      this.startY = evt.touches[0].pageY;
-    }
-    this.currentY = this.startY;
-
-    if (this._infScroll) {
-      this._infScroll.style.willChange = 'transform';
-      this._infScroll.style.transition = `transform 0.2s cubic-bezier(0,0,0.31,1)`;
-    }
-  };
-
-  onMove: EventListener = (evt: Event) => {
-    if (!this.dragging) return;
-
-    if (evt instanceof MouseEvent) {
-      this.currentY = evt.pageY;
-    } else if (evt instanceof TouchEvent) {
-      this.currentY = evt.touches[0].pageY;
-    }
-
-    // user is scrolling down to up
-    if (this.currentY < this.startY) return;
-
-    if (
-      this.currentY - this.startY >=
-      Number(this.props.pullDownToRefreshThreshold)
-    ) {
-      this.setState({
-        pullToRefreshThresholdBreached: true,
-      });
-    }
-
-    // so you can drag upto 1.5 times of the maxPullDownDistance
-    if (this.currentY - this.startY > this.maxPullDownDistance * 1.5) return;
-
-    if (this._infScroll) {
-      this._infScroll.style.overflow = 'visible';
-      this._infScroll.style.transform = `translate3d(0px, ${this.currentY -
-        this.startY}px, 0px)`;
-    }
-  };
-
-  onEnd: EventListener = () => {
-    this.startY = 0;
-    this.currentY = 0;
-
-    this.dragging = false;
-
-    if (this.state.pullToRefreshThresholdBreached) {
-      this.props.refreshFunction && this.props.refreshFunction();
-      this.setState({
-        pullToRefreshThresholdBreached: false,
-      });
-    }
-
-    requestAnimationFrame(() => {
-      // this._infScroll
-      if (this._infScroll) {
-        this._infScroll.style.overflow = 'auto';
-        this._infScroll.style.transform = 'none';
-        this._infScroll.style.willChange = 'unset';
-      }
-    });
-  };
-
-  isElementAtTop(target: HTMLElement, scrollThreshold: string | number = 0.8) {
-    const clientHeight =
-      target === document.body || target === document.documentElement
-        ? window.screen.availHeight
-        : target.clientHeight;
-
-    const threshold = parseThreshold(scrollThreshold);
-
-    if (threshold.unit === ThresholdUnits.Pixel) {
-      return (
-        target.scrollTop <=
-        threshold.value + clientHeight - target.scrollHeight + 1
-      );
-    }
-
-    return (
-      target.scrollTop <=
-      threshold.value / 100 + clientHeight - target.scrollHeight + 1
-    );
-  }
-
-  isElementAtBottom(
-    target: HTMLElement,
-    scrollThreshold: string | number = 0.8
-  ) {
-    const clientHeight =
-      target === document.body || target === document.documentElement
-        ? window.screen.availHeight
-        : target.clientHeight;
-
-    const threshold = parseThreshold(scrollThreshold);
-
-    if (threshold.unit === ThresholdUnits.Pixel) {
-      return (
-        target.scrollTop + clientHeight >= target.scrollHeight - threshold.value
-      );
-    }
-
-    return (
-      target.scrollTop + clientHeight >=
-      (threshold.value / 100) * target.scrollHeight
-    );
-  }
-
-  onScrollListener = (event: MouseEvent) => {
-    if (typeof this.props.onScroll === 'function') {
-      // Execute this callback in next tick so that it does not affect the
-      // functionality of the library.
-      setTimeout(() => this.props.onScroll && this.props.onScroll(event), 0);
-    }
-
-    const target =
-      this.props.height || this._scrollableNode
-        ? (event.target as HTMLElement)
-        : document.documentElement.scrollTop
-        ? document.documentElement
-        : document.body;
-
-    // return immediately if the action has already been triggered,
-    // prevents multiple triggers.
-    if (this.actionTriggered) return;
-
-    const atBottom = this.props.inverse
-      ? this.isElementAtTop(target, this.props.scrollThreshold)
-      : this.isElementAtBottom(target, this.props.scrollThreshold);
-
-    // call the `next` function in the props to trigger the next data fetch
-    if (atBottom && this.props.hasMore) {
-      this.actionTriggered = true;
-      this.setState({ showLoader: true });
-      this.props.next && this.props.next();
-    }
-
-    this.lastScrollTop = target.scrollTop;
-  };
-
-  render() {
-    const style = {
-      height: this.props.height || 'auto',
-      overflow: 'auto',
-      WebkitOverflowScrolling: 'touch',
-      ...this.props.style,
-    } as CSSProperties;
-    const hasChildren =
-      this.props.hasChildren ||
-      !!(
-        this.props.children &&
-        this.props.children instanceof Array &&
-        this.props.children.length
-      );
-
-    // because heighted infiniteScroll visualy breaks
-    // on drag down as overflow becomes visible
-    const outerDivStyle =
-      this.props.pullDownToRefresh && this.props.height
-        ? { overflow: 'auto' }
-        : {};
-    return (
+  return (
+    <div style={outerDivStyle} className="infinite-scroll-component__outerdiv">
       <div
-        style={outerDivStyle}
-        className="infinite-scroll-component__outerdiv"
+        className={`infinite-scroll-component ${className || ''}`}
+        ref={_infScroll}
+        style={componentStyle}
       >
-        <div
-          className={`infinite-scroll-component ${this.props.className || ''}`}
-          ref={(infScroll: HTMLDivElement) => (this._infScroll = infScroll)}
-          style={style}
-        >
-          {this.props.pullDownToRefresh && (
+        {pullDownToRefresh && (
+          <div style={{ position: 'relative' }} ref={_pullDown}>
             <div
-              style={{ position: 'relative' }}
-              ref={(pullDown: HTMLDivElement) => (this._pullDown = pullDown)}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: -1 * maxPullDownDistance.current,
+              }}
             >
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: -1 * this.maxPullDownDistance,
-                }}
-              >
-                {this.state.pullToRefreshThresholdBreached
-                  ? this.props.releaseToRefreshContent
-                  : this.props.pullDownToRefreshContent}
-              </div>
+              {pullToRefreshThresholdBreached
+                ? releaseToRefreshContent
+                : pullDownToRefreshContent}
             </div>
-          )}
-          {this.props.children}
-          {!this.state.showLoader &&
-            !hasChildren &&
-            this.props.hasMore &&
-            this.props.loader}
-          {this.state.showLoader && this.props.hasMore && this.props.loader}
-          {!this.props.hasMore && this.props.endMessage}
-        </div>
+          </div>
+        )}
+        {children}
+        {!showLoader && !hasChildrenProp && hasMore && loader}
+        {showLoader && hasMore && loader}
+        {!hasMore && endMessage}
       </div>
-    );
-  }
+    </div>
+  );
+  // #endregion
 }
