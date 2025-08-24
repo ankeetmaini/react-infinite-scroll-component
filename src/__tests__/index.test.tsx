@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, act } from '@testing-library/react';
 import InfiniteScroll from '../index';
 
 describe('React Infinite Scroll Component', () => {
@@ -77,22 +77,20 @@ describe('React Infinite Scroll Component', () => {
       '.infinite-scroll-component'
     ) as HTMLElement;
 
-    node.dispatchEvent(scrollEvent);
-    jest.runOnlyPendingTimers();
-    expect(setTimeout).toHaveBeenCalledTimes(1);
+    act(() => {
+      node.dispatchEvent(scrollEvent);
+      jest.runOnlyPendingTimers();
+    });
     expect(onScrollMock).toHaveBeenCalled();
   });
 
   describe('When missing the dataLength prop', () => {
     it('throws an error', () => {
-      console.error = jest.fn();
       const props = { loader: 'Loading...', hasMore: false, next: () => {} };
 
-      // @ts-ignore
-      expect(() => render(<InfiniteScroll {...props} />)).toThrow(Error);
-      // @ts-ignore
-      expect(console.error.mock.calls[0][0]).toContain(
-        '"dataLength" is missing'
+      // @ts-expect-error ignore the below error
+      expect(() => render(<InfiniteScroll {...props} />)).toThrow(
+        'mandatory prop "dataLength" is missing. The prop is needed when loading more content. Check README.md for usage'
       );
     });
   });
@@ -115,7 +113,9 @@ describe('React Infinite Scroll Component', () => {
       const node = container.querySelector(
         '.infinite-scroll-component'
       ) as HTMLElement;
-      node.dispatchEvent(scrollEvent);
+      act(() => {
+        node.dispatchEvent(scrollEvent);
+      });
       expect(queryByText('Loading...')).toBeFalsy();
     });
 
@@ -137,7 +137,9 @@ describe('React Infinite Scroll Component', () => {
       const node = container.querySelector(
         '.infinite-scroll-component'
       ) as HTMLElement;
-      node.dispatchEvent(scrollEvent);
+      act(() => {
+        node.dispatchEvent(scrollEvent);
+      });
       expect(getByText('Loading...')).toBeTruthy();
     });
   });

@@ -4,7 +4,7 @@ type State = {
   data: number[];
 };
 export default class WindowInfiniteScrollComponent extends React.Component<
-  {},
+  object,
   State
 > {
   state = {

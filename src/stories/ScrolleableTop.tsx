@@ -1,5 +1,4 @@
 import React from 'react';
-import { render } from 'react-dom';
 import InfiniteScroll from '../index';
 
 const style = {
@@ -9,7 +8,7 @@ const style = {
   padding: 8,
 };
 
-export default class App extends React.Component {
+export default class ScrolleableTop extends React.Component {
   state = {
     items: Array.from({ length: 20 }),
   };
@@ -58,5 +57,3 @@ export default class App extends React.Component {
     );
   }
 }
-
-render(<App />, document.getElementById('root'));
