@@ -9,3 +9,4 @@ dist
 storybook-static/
 coverage/
 yarn-error.log
+*storybook.log
