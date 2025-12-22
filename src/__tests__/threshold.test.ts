@@ -34,7 +34,7 @@ describe('parseThreshold', () => {
   });
 
   it('warns and returns default for non-string/number', () => {
-    const t = parseThreshold((null as unknown) as any);
+    const t = parseThreshold(null as unknown as any);
     expect(t.unit).toBe(ThresholdUnits.Percent);
     expect(t.value).toBe(0.8);
     expect(warnSpy).toHaveBeenCalled();
