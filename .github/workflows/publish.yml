@@ -30,4 +30,9 @@ jobs:
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-        run: npm publish --access public || true
+        run: |
+          if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+            npm publish --access public --tag beta
+          else
+            npm publish --access public
+          fi

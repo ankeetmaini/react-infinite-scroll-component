@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, cleanup } from '@testing-library/react';
 import InfiniteScroll from '../index';
 
@@ -57,6 +56,7 @@ describe('React Infinite Scroll Component', () => {
 
   it('calls scroll handler if provided, when user scrolls', () => {
     jest.useFakeTimers();
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
     const onScrollMock = jest.fn();
 
     const { container } = render(
@@ -79,21 +79,23 @@ describe('React Infinite Scroll Component', () => {
 
     node.dispatchEvent(scrollEvent);
     jest.runOnlyPendingTimers();
-    expect(setTimeout).toHaveBeenCalledTimes(1);
+    expect(setTimeoutSpy).toHaveBeenCalled();
     expect(onScrollMock).toHaveBeenCalled();
+    setTimeoutSpy.mockRestore();
   });
 
   describe('When missing the dataLength prop', () => {
     it('throws an error', () => {
-      console.error = jest.fn();
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       const props = { loader: 'Loading...', hasMore: false, next: () => {} };
 
       // @ts-ignore
-      expect(() => render(<InfiniteScroll {...props} />)).toThrow(Error);
-      // @ts-ignore
-      expect(console.error.mock.calls[0][0]).toContain(
-        '"dataLength" is missing'
+      expect(() => render(<InfiniteScroll {...props} />)).toThrow(
+        'mandatory prop "dataLength" is missing'
       );
+      consoleSpy.mockRestore();
     });
   });
 

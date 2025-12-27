@@ -21,6 +21,6 @@ export default {
       name: 'InfiniteScroll',
     },
   ],
-  external: [...Object.keys(pkg.peerDependencies || {})],
+  external: [...Object.keys(pkg.peerDependencies || {}), 'react/jsx-runtime'],
   plugins: [resolve(), typescript({ useTsconfigDeclarationDir: true })],
 };

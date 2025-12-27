@@ -2,8 +2,8 @@
   "files": [
     "README.md"
   ],
-  "imageSize": 100,
-  "contributorsPerLine": 5,
+  "imageSize": 80,
+  "contributorsPerLine": 6,
   "skipCi": true,
   "contributors": [
     {
@@ -25,7 +25,10 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/25670841?v=4",
       "profile": "https://github.com/iamdarshshah",
       "contributions": [
-        "infra"
+        "infra",
+        "code",
+        "review",
+        "maintenance"
       ]
     }
   ],

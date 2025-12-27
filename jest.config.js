@@ -79,6 +79,18 @@ module.exports = {
   // A preset that is used as a base for Jest's configuration
   preset: 'ts-jest',
 
+  // ts-jest configuration for React 17 JSX transform
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          jsx: 'react-jsx',
+        },
+      },
+    ],
+  },
+
   // Run tests from one or more projects
   // projects: null,
 

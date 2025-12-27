@@ -1,0 +1,1 @@
+yarn run ts-check && npx lint-staged

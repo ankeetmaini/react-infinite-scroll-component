@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { storiesOf } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 
 import WindowInf from './WindowInfiniteScrollComponent';
 import PullDownToRefreshInfScroll from './PullDownToRefreshInfScroll';
@@ -7,28 +6,35 @@ import InfiniteScrollWithHeight from './InfiniteScrollWithHeight';
 import ScrollableTargetInfiniteScroll from './ScrollableTargetInfScroll';
 import ScrolleableTop from './ScrolleableTop';
 
-const stories = storiesOf('Components', module);
+const meta: Meta = {
+  title: 'Components',
+};
 
-stories.add('InfiniteScroll', () => <WindowInf />, {
-  info: { inline: true },
-});
+export default meta;
 
-stories.add('PullDownToRefresh', () => <PullDownToRefreshInfScroll />, {
-  info: { inline: true },
-});
+type Story = StoryObj;
 
-stories.add('InfiniteScrollWithHeight', () => <InfiniteScrollWithHeight />, {
-  info: { inline: true },
-});
+export const InfiniteScrollStory: Story = {
+  name: 'InfiniteScroll',
+  render: () => <WindowInf />,
+};
 
-stories.add(
-  'ScrollableTargetInfiniteScroll',
-  () => <ScrollableTargetInfiniteScroll />,
-  {
-    info: { inline: true },
-  }
-);
+export const PullDownToRefresh: Story = {
+  name: 'PullDownToRefresh',
+  render: () => <PullDownToRefreshInfScroll />,
+};
 
-stories.add('InfiniteScrollTop', () => <ScrolleableTop />, {
-  info: { inline: true },
-});
+export const InfiniteScrollWithHeightStory: Story = {
+  name: 'InfiniteScrollWithHeight',
+  render: () => <InfiniteScrollWithHeight />,
+};
+
+export const ScrollableTargetInfiniteScrollStory: Story = {
+  name: 'ScrollableTargetInfiniteScroll',
+  render: () => <ScrollableTargetInfiniteScroll />,
+};
+
+export const InfiniteScrollTop: Story = {
+  name: 'InfiniteScrollTop',
+  render: () => <ScrolleableTop />,
+};
