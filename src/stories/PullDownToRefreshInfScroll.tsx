@@ -1,5 +1,4 @@
 import React from 'react';
-import { render } from 'react-dom';
 import InfiniteScroll from '../index';
 
 const style = {
@@ -55,5 +54,3 @@ export default class App extends React.Component {
     );
   }
 }
-
-render(<App />, document.getElementById('root'));
