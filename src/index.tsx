@@ -314,6 +314,10 @@ export default class InfiniteScroll extends Component<Props, State> {
         ? document.documentElement
         : document.body;
 
+    // fix scrollTop is not updated, 
+    // fix: the problem that the pull down refresh function fails when scrolling to the bottom
+    this.lastScrollTop = target.scrollTop;
+    
     // return immediately if the action has already been triggered,
     // prevents multiple triggers.
     if (this.actionTriggered) return;
@@ -329,7 +333,6 @@ export default class InfiniteScroll extends Component<Props, State> {
       this.props.next && this.props.next();
     }
 
-    this.lastScrollTop = target.scrollTop;
   };
 
   render() {
