@@ -145,14 +145,23 @@ export default class InfiniteScroll extends Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     // do nothing when dataLength is unchanged
-    if (this.props.dataLength === prevProps.dataLength) return;
+    if (this.props.dataLength === prevProps.dataLength || this.props.dataLength === 0) return;
 
-    this.actionTriggered = false;
-
-    // update state when new data was sent in
-    this.setState({
-      showLoader: false,
-    });
+    const fetchAgain =
+      this._infScroll &&
+      this._scrollableNode &&
+      this._scrollableNode.clientHeight * 1.1 > this._infScroll.scrollHeight;
+    if (fetchAgain) {
+      this.actionTriggered = true;
+      this.setState({ showLoader: true });
+      this.props.next();
+    } else {
+      this.actionTriggered = false;
+      // update state when new data was sent in
+      this.setState({
+        showLoader: false,
+      });
+    }
   }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
