@@ -1,6 +1,9 @@
 # react-infinite-scroll-component [![npm](https://img.shields.io/npm/dt/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component) [![npm](https://img.shields.io/npm/v/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component)
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 A component to make all your infinite scrolling woes go away with just 4.15 kB! `Pull Down to Refresh` feature
@@ -51,28 +54,47 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 
 ## Using scroll on top
 
+> use `transform: scaleY(-1)`
+
 ```jsx
 <div
   id="scrollableDiv"
   style={{
     height: 300,
     overflow: 'auto',
-    display: 'flex',
-    flexDirection: 'column-reverse',
+    transform: 'scaleY(-1)',
   }}
 >
   {/*Put the scroll bar always on the bottom*/}
   <InfiniteScroll
     dataLength={this.state.items.length}
     next={this.fetchMoreData}
-    style={{ display: 'flex', flexDirection: 'column-reverse' }} //To put endMessage and loader to the top.
     inverse={true} //
     hasMore={true}
-    loader={<h4>Loading...</h4>}
+    loader={<h4 style={{ transform: 'scaleY(-1)' }}>Loading...</h4>}
+    endMessage={
+      <p style={{ textAlign: 'center', transform: 'scaleY(-1)' }}>
+        <b>Yay! You have seen it all</b>
+      </p>
+    }
     scrollableTarget="scrollableDiv"
+    // below props only if you need pull up functionality
+    refreshFunction={this.refresh}
+    pullDownToRefresh
+    pullDownToRefreshThreshold={50}
+    pullDownToRefreshContent={
+      <h3 style={{ textAlign: 'center', transform: 'scaleY(-1)' }}>
+        &#8595; Pull up to refresh
+      </h3>
+    }
+    releaseToRefreshContent={
+      <h3 style={{ textAlign: 'center', transform: 'scaleY(-1)' }}>
+        &#8593; Release to refresh
+      </h3>
+    }
   >
     {this.state.items.map((_, index) => (
-      <div style={style} key={index}>
+      <div style={{ transform: 'scaleY(-1)' }} key={index}>
         div - #{index}
       </div>
     ))}
@@ -100,6 +122,8 @@ The `InfiniteScroll` component can be used in three ways.
   - [![Edit w3w89k7x8](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/w3w89k7x8)
 - infinite scroll with `scrollableTarget` (a parent element which is scrollable)
   - [![Edit r7rp40n0zm](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/r7rp40n0zm)
+- infinite scroll with `inverse`(pullDownRefresh into pillUpRefresh)
+  - [![Edit xqxy64](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/xqxy64)
 
 ## props
 

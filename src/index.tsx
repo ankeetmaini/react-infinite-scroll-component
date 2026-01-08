@@ -210,6 +210,29 @@ export default class InfiniteScroll extends Component<Props, State> {
       this.currentY = evt.touches[0].pageY;
     }
 
+    if (this.props.inverse) {
+      // user is scrolling up to down;
+      if (this.currentY > this.startY) return;
+
+      if (
+        this.startY - this.currentY >=
+        Number(this.props.pullDownToRefreshThreshold)
+      ) {
+        this.setState({
+          pullToRefreshThresholdBreached: true,
+        });
+      }
+
+      // so you can drag downto 1.5 times of the maxPullDownDistance
+      if (this.startY - this.currentY > this.maxPullDownDistance * 1.5) return;
+
+      if (this._infScroll) {
+        this._infScroll.style.overflow = 'visible';
+        this._infScroll.style.transform = `translate3d(0px, ${this.startY -
+          this.currentY}px, 0px)`;
+      }
+      return;
+    }
     // user is scrolling down to up
     if (this.currentY < this.startY) return;
 
@@ -256,27 +279,6 @@ export default class InfiniteScroll extends Component<Props, State> {
     });
   };
 
-  isElementAtTop(target: HTMLElement, scrollThreshold: string | number = 0.8) {
-    const clientHeight =
-      target === document.body || target === document.documentElement
-        ? window.screen.availHeight
-        : target.clientHeight;
-
-    const threshold = parseThreshold(scrollThreshold);
-
-    if (threshold.unit === ThresholdUnits.Pixel) {
-      return (
-        target.scrollTop <=
-        threshold.value + clientHeight - target.scrollHeight + 1
-      );
-    }
-
-    return (
-      target.scrollTop <=
-      threshold.value / 100 + clientHeight - target.scrollHeight + 1
-    );
-  }
-
   isElementAtBottom(
     target: HTMLElement,
     scrollThreshold: string | number = 0.8
@@ -318,9 +320,7 @@ export default class InfiniteScroll extends Component<Props, State> {
     // prevents multiple triggers.
     if (this.actionTriggered) return;
 
-    const atBottom = this.props.inverse
-      ? this.isElementAtTop(target, this.props.scrollThreshold)
-      : this.isElementAtBottom(target, this.props.scrollThreshold);
+    const atBottom = this.isElementAtBottom(target, this.props.scrollThreshold);
 
     // call the `next` function in the props to trigger the next data fetch
     if (atBottom && this.props.hasMore) {
