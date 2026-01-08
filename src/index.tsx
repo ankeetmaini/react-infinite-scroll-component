@@ -257,6 +257,17 @@ export default class InfiniteScroll extends Component<Props, State> {
   };
 
   isElementAtTop(target: HTMLElement, scrollThreshold: string | number = 0.8) {
+    const getChromeVersion = () => {
+      const raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+
+      return raw ? parseInt(raw[2], 10) : false;
+    };
+
+    const isMobile =
+      navigator.maxTouchPoints || 'ontouchstart' in document.documentElement;
+
+    const isOldMobileBrowser = isMobile && getChromeVersion() <= 80;
+
     const clientHeight =
       target === document.body || target === document.documentElement
         ? window.screen.availHeight
@@ -264,13 +275,17 @@ export default class InfiniteScroll extends Component<Props, State> {
 
     const threshold = parseThreshold(scrollThreshold);
 
+    if (isOldMobileBrowser && threshold.unit === ThresholdUnits.Pixel)
+      return target.scrollTop <= 200 + threshold.value;
+
+    if (isOldMobileBrowser) return target.scrollTop <= 150;
+
     if (threshold.unit === ThresholdUnits.Pixel) {
       return (
         target.scrollTop <=
         threshold.value + clientHeight - target.scrollHeight + 1
       );
     }
-
     return (
       target.scrollTop <=
       threshold.value / 100 + clientHeight - target.scrollHeight + 1
