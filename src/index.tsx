@@ -17,6 +17,7 @@ export interface Props {
   inverse?: boolean;
   pullDownToRefresh?: boolean;
   pullDownToRefreshContent?: ReactNode;
+  pullDownToRefreshContentOnTop?: boolean;
   releaseToRefreshContent?: ReactNode;
   pullDownToRefreshThreshold?: number;
   refreshFunction?: Fn;
@@ -24,6 +25,7 @@ export interface Props {
   dataLength: number;
   initialScrollY?: number;
   className?: string;
+  id?: string;
 }
 
 interface State {
@@ -105,7 +107,7 @@ export default class InfiniteScroll extends Component<Props, State> {
       this.el.addEventListener('mousemove', this.onMove);
       this.el.addEventListener('mouseup', this.onEnd);
 
-      // get BCR of pullDown element to position it above
+      // get BCR (Bounding Client Rectangle) of pullDown element to position it above
       this.maxPullDownDistance =
         (this._pullDown &&
           this._pullDown.firstChild &&
@@ -215,7 +217,7 @@ export default class InfiniteScroll extends Component<Props, State> {
 
     if (
       this.currentY - this.startY >=
-      Number(this.props.pullDownToRefreshThreshold)
+      (Number(this.props.pullDownToRefreshThreshold) || 100)
     ) {
       this.setState({
         pullToRefreshThresholdBreached: true,
@@ -334,6 +336,7 @@ export default class InfiniteScroll extends Component<Props, State> {
 
   render() {
     const style = {
+      position: 'relative',
       height: this.props.height || 'auto',
       overflow: 'auto',
       WebkitOverflowScrolling: 'touch',
@@ -358,14 +361,11 @@ export default class InfiniteScroll extends Component<Props, State> {
         style={outerDivStyle}
         className="infinite-scroll-component__outerdiv"
       >
-        <div
-          className={`infinite-scroll-component ${this.props.className || ''}`}
-          ref={(infScroll: HTMLDivElement) => (this._infScroll = infScroll)}
-          style={style}
-        >
-          {this.props.pullDownToRefresh && (
+        {this.props.pullDownToRefresh &&
+          !this.props.pullDownToRefreshContentOnTop && (
             <div
               style={{ position: 'relative' }}
+              // style={{ position: 'relative', zIndex: 0 }}
               ref={(pullDown: HTMLDivElement) => (this._pullDown = pullDown)}
             >
               <div
@@ -373,7 +373,7 @@ export default class InfiniteScroll extends Component<Props, State> {
                   position: 'absolute',
                   left: 0,
                   right: 0,
-                  top: -1 * this.maxPullDownDistance,
+                  // top:  -1 * this.maxPullDownDistance,
                 }}
               >
                 {this.state.pullToRefreshThresholdBreached
@@ -382,6 +382,33 @@ export default class InfiniteScroll extends Component<Props, State> {
               </div>
             </div>
           )}
+        <div
+          className={`infinite-scroll-component ${this.props.className || ''}`}
+          ref={(infScroll: HTMLDivElement) => (this._infScroll = infScroll)}
+          style={style}
+          id={`${this.props.id || ''}`}
+        >
+          {this.props.pullDownToRefresh &&
+            this.props.pullDownToRefreshContentOnTop && (
+              <div
+                style={{ position: 'relative' }}
+                // style={{ position: 'relative', zIndex: 0 }}
+                ref={(pullDown: HTMLDivElement) => (this._pullDown = pullDown)}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: -1 * this.maxPullDownDistance,
+                  }}
+                >
+                  {this.state.pullToRefreshThresholdBreached
+                    ? this.props.releaseToRefreshContent
+                    : this.props.pullDownToRefreshContent}
+                </div>
+              </div>
+            )}
           {this.props.children}
           {!this.state.showLoader &&
             !hasChildren &&
