@@ -215,7 +215,7 @@ export default class InfiniteScroll extends Component<Props, State> {
 
     if (
       this.currentY - this.startY >=
-      Number(this.props.pullDownToRefreshThreshold)
+      (Number(this.props.pullDownToRefreshThreshold) || 100)
     ) {
       this.setState({
         pullToRefreshThresholdBreached: true,
