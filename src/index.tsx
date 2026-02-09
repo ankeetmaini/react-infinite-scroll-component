@@ -12,7 +12,7 @@ export interface Props {
   endMessage?: ReactNode;
   style?: CSSProperties;
   height?: number | string;
-  scrollableTarget?: ReactNode;
+  scrollableTarget?: HTMLElement | string;
   hasChildren?: boolean;
   inverse?: boolean;
   pullDownToRefresh?: boolean;
