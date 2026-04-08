@@ -1,16 +1,17 @@
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, act } from '@testing-library/react';
 import InfiniteScroll from '../index';
+import { MockIntersectionObserver } from './setup/intersectionObserverMock';
 
 describe('inverse mode triggers next near top', () => {
-  beforeEach(() => jest.useFakeTimers());
-  afterEach(() => {
-    cleanup();
-    jest.useRealTimers();
+  beforeEach(() => {
+    MockIntersectionObserver.instances = [];
   });
 
-  it('calls next when at top (inverse)', () => {
+  afterEach(cleanup);
+
+  it('calls next when sentinel intersects in inverse mode', () => {
     const next = jest.fn();
-    const { container } = render(
+    render(
       <InfiniteScroll
         dataLength={10}
         loader={'Loading...'}
@@ -24,27 +25,30 @@ describe('inverse mode triggers next near top', () => {
       </InfiniteScroll>
     );
 
-    const node = container.querySelector(
-      '.infinite-scroll-component'
-    ) as HTMLElement;
-
-    Object.defineProperty(node, 'clientHeight', {
-      configurable: true,
-      get: () => 100,
+    act(() => {
+      MockIntersectionObserver.instances[0].triggerIntersect();
     });
-    Object.defineProperty(node, 'scrollHeight', {
-      configurable: true,
-      get: () => 1000,
-    });
-    Object.defineProperty(node, 'scrollTop', {
-      configurable: true,
-      get: () => 0,
-    });
-
-    node.dispatchEvent(new Event('scroll'));
-
-    jest.advanceTimersByTime(200);
 
     expect(next).toHaveBeenCalled();
+  });
+
+  it('applies top rootMargin in inverse mode', () => {
+    const next = jest.fn();
+    render(
+      <InfiniteScroll
+        dataLength={5}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+        inverse
+        scrollThreshold={0.8}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const { options } = MockIntersectionObserver.instances[0];
+    // inverse mode: margin applies to top, so rootMargin starts with a non-zero value
+    expect(options.rootMargin).toBe('20% 0px 0px 0px');
   });
 });
