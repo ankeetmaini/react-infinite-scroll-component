@@ -56,11 +56,12 @@
     "@storybook/addon-essentials": "^7.6.0",
     "@storybook/react": "^7.6.0",
     "@storybook/react-webpack5": "^7.6.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
     "@testing-library/react": "^12.1.5",
     "@types/jest": "^29.5.14",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
-    "@types/throttle-debounce": "^2.1.0",
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
     "babel-loader": "^8.0.6",
@@ -75,17 +76,13 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "rimraf": "^3.0.0",
-    "rollup": "^1.26.3",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-typescript2": "^0.25.2",
+    "rollup": "^4.0.0",
     "size-limit": "^12.0.1",
     "storybook": "^7.6.0",
     "ts-jest": "^29.4.6",
-    "typescript": "^4.9.0"
+    "typescript": "^5.4.0"
   },
-  "dependencies": {
-    "throttle-debounce": "^2.1.0"
-  },
+  "dependencies": {},
   "size-limit": [
     {
       "path": "dist/index.es.js",
