@@ -13,7 +13,7 @@ export default class WindowInfiniteScrollComponent extends React.Component<
 
   next = () => {
     setTimeout(() => {
-      const newData = [...this.state.data, new Array(100).fill(1)];
+      const newData = [...this.state.data, ...new Array(100).fill(1)];
       this.setState({ data: newData });
     }, 2000);
   };
