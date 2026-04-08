@@ -5,7 +5,38 @@ on:
     types: [published]
 
 jobs:
+  # Runs the full test suite against React 17, 18, and 19 before any publish step.
+  # All three matrix jobs must pass — if any fail, the publish job never runs.
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        react: ['17', '18', '19']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Swap to React ${{ matrix.react }}
+        run: |
+          yarn add --dev react@${{ matrix.react }} react-dom@${{ matrix.react }}
+
+      - name: Type check
+        run: yarn ts-check
+
+      - name: Unit tests
+        run: yarn test --runInBand
+
   publish:
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: read

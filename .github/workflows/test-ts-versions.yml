@@ -1,0 +1,36 @@
+name: Test TypeScript Versions
+
+on:
+  push:
+    branches: [master, 'feat/**', 'fix/**', 'ci/**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        typescript: ['4.5', '4.7', '4.9', '5.0', '5.4', 'latest']
+
+    name: TypeScript ${{ matrix.typescript }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Swap to TypeScript ${{ matrix.typescript }}
+        run: yarn add --dev typescript@${{ matrix.typescript }}
+
+      # Run type-check only — tests themselves don't need to pass under every TS version,
+      # but the public API surface (src/index.tsx + utils) must type-check cleanly.
+      - name: Type check
+        run: yarn ts-check
