@@ -1,6 +1,6 @@
 {
   "name": "react-infinite-scroll-component",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "An Infinite Scroll component in react.",
   "engines": {
     "node": ">=18.18.0"
@@ -43,8 +43,8 @@
   },
   "homepage": "https://github.com/ankeetmaini/react-infinite-scroll-component#readme",
   "peerDependencies": {
-    "react": "^17.0.0",
-    "react-dom": "^17.0.0"
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
