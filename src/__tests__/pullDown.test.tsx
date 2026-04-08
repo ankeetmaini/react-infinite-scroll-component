@@ -1,4 +1,4 @@
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, act } from '@testing-library/react';
 import InfiniteScroll from '../index';
 
 describe('pull down to refresh', () => {
@@ -52,17 +52,23 @@ describe('pull down to refresh', () => {
 
     const down = new MouseEvent('mousedown', { bubbles: true } as any);
     Object.defineProperty(down, 'pageY', { value: 0 });
-    node.dispatchEvent(down);
+    act(() => {
+      node.dispatchEvent(down);
+    });
 
     const move = new MouseEvent('mousemove', { bubbles: true } as any);
     Object.defineProperty(move, 'pageY', { value: 60 });
-    node.dispatchEvent(move);
+    act(() => {
+      node.dispatchEvent(move);
+    });
 
     // verify transform is applied during drag
     expect(node.style.transform).toBe('translate3d(0px, 60px, 0px)');
 
     const up = new MouseEvent('mouseup', { bubbles: true } as any);
-    node.dispatchEvent(up);
+    act(() => {
+      node.dispatchEvent(up);
+    });
 
     expect(refresh).toHaveBeenCalled();
   });

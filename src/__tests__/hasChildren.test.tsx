@@ -1,7 +1,12 @@
 import { render, cleanup } from '@testing-library/react';
 import InfiniteScroll from '../index';
+import { MockIntersectionObserver } from './setup/intersectionObserverMock';
 
 describe('hasChildren logic and loader visibility', () => {
+  beforeEach(() => {
+    MockIntersectionObserver.instances = [];
+  });
+
   afterEach(cleanup);
 
   it('shows loader when hasMore and no children', () => {
@@ -20,6 +25,8 @@ describe('hasChildren logic and loader visibility', () => {
   });
 
   it('does not show loader when hasChildren=true and non-array child', () => {
+    // With IO the loader is only shown synchronously when there are no children.
+    // hasChildren=true suppresses the immediate loader render — IO must fire first.
     const { queryByText } = render(
       <InfiniteScroll
         dataLength={1}
@@ -32,6 +39,7 @@ describe('hasChildren logic and loader visibility', () => {
         <div>child</div>
       </InfiniteScroll>
     );
+    // IO has not fired yet, so showLoader=false AND hasChildren=true suppresses the immediate render
     expect(queryByText('Loading...')).toBeNull();
   });
 });

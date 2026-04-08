@@ -1,8 +1,13 @@
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, act } from '@testing-library/react';
 import InfiniteScroll from '../index';
+import { MockIntersectionObserver } from './setup/intersectionObserverMock';
 
 describe('React Infinite Scroll Component', () => {
   const originalConsoleError = console.error;
+
+  beforeEach(() => {
+    MockIntersectionObserver.instances = [];
+  });
 
   afterEach(() => {
     cleanup();
@@ -82,6 +87,7 @@ describe('React Infinite Scroll Component', () => {
     expect(setTimeoutSpy).toHaveBeenCalled();
     expect(onScrollMock).toHaveBeenCalled();
     setTimeoutSpy.mockRestore();
+    jest.useRealTimers();
   });
 
   describe('When missing the dataLength prop', () => {
@@ -101,7 +107,7 @@ describe('React Infinite Scroll Component', () => {
 
   describe('When user scrolls to the bottom', () => {
     it('does not show loader if hasMore is false', () => {
-      const { container, queryByText } = render(
+      const { queryByText } = render(
         <InfiniteScroll
           dataLength={4}
           loader={'Loading...'}
@@ -112,17 +118,12 @@ describe('React Infinite Scroll Component', () => {
           <div />
         </InfiniteScroll>
       );
-
-      const scrollEvent = new Event('scroll');
-      const node = container.querySelector(
-        '.infinite-scroll-component'
-      ) as HTMLElement;
-      node.dispatchEvent(scrollEvent);
+      // No IO observer created, loader never shown
       expect(queryByText('Loading...')).toBeFalsy();
     });
 
-    it('shows loader if hasMore is true', () => {
-      const { container, getByText } = render(
+    it('shows loader if hasMore is true after IO fires', () => {
+      const { getByText } = render(
         <InfiniteScroll
           dataLength={4}
           loader={'Loading...'}
@@ -135,11 +136,10 @@ describe('React Infinite Scroll Component', () => {
         </InfiniteScroll>
       );
 
-      const scrollEvent = new Event('scroll');
-      const node = container.querySelector(
-        '.infinite-scroll-component'
-      ) as HTMLElement;
-      node.dispatchEvent(scrollEvent);
+      act(() => {
+        MockIntersectionObserver.instances[0].triggerIntersect();
+      });
+
       expect(getByText('Loading...')).toBeTruthy();
     });
   });

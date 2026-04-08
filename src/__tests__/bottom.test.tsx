@@ -1,19 +1,17 @@
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, act } from '@testing-library/react';
 import InfiniteScroll from '../index';
+import { MockIntersectionObserver } from './setup/intersectionObserverMock';
 
 describe('bottom detection triggers next', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    MockIntersectionObserver.instances = [];
   });
 
-  afterEach(() => {
-    cleanup();
-    jest.useRealTimers();
-  });
+  afterEach(cleanup);
 
-  it('calls next when scrolled to bottom (height container)', () => {
+  it('calls next when sentinel intersects (height container)', () => {
     const next = jest.fn();
-    const { container } = render(
+    render(
       <InfiniteScroll
         dataLength={0}
         loader={'Loading...'}
@@ -26,27 +24,53 @@ describe('bottom detection triggers next', () => {
       </InfiniteScroll>
     );
 
-    const node = container.querySelector(
-      '.infinite-scroll-component'
-    ) as HTMLElement;
-
-    Object.defineProperty(node, 'clientHeight', {
-      configurable: true,
-      get: () => 100,
+    act(() => {
+      MockIntersectionObserver.instances[0].triggerIntersect();
     });
-    Object.defineProperty(node, 'scrollHeight', {
-      configurable: true,
-      get: () => 200,
-    });
-    Object.defineProperty(node, 'scrollTop', {
-      configurable: true,
-      get: () => 100,
-    });
-
-    node.dispatchEvent(new Event('scroll'));
-
-    jest.advanceTimersByTime(200);
 
     expect(next).toHaveBeenCalled();
+  });
+
+  it('does not call next when hasMore is false', () => {
+    const next = jest.fn();
+    render(
+      <InfiniteScroll
+        dataLength={0}
+        loader={'Loading...'}
+        hasMore={false}
+        next={next}
+        height={100}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    // No observer is created when hasMore=false (no sentinel rendered)
+    expect(MockIntersectionObserver.instances).toHaveLength(0);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('does not call next twice before dataLength changes', () => {
+    const next = jest.fn();
+    render(
+      <InfiniteScroll
+        dataLength={0}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+        height={100}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const observer = MockIntersectionObserver.instances[0];
+
+    act(() => {
+      observer.triggerIntersect();
+      observer.triggerIntersect(); // second fire before dataLength changes
+    });
+
+    expect(next).toHaveBeenCalledTimes(1);
   });
 });

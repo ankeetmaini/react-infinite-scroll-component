@@ -1,32 +1,22 @@
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, act } from '@testing-library/react';
 import InfiniteScroll from '../index';
+import { MockIntersectionObserver } from './setup/intersectionObserverMock';
 
 describe('scrollableTarget as element id', () => {
-  beforeEach(() => jest.useFakeTimers());
-  afterEach(() => {
-    cleanup();
-    jest.useRealTimers();
+  beforeEach(() => {
+    MockIntersectionObserver.instances = [];
   });
 
-  it('listens on the provided scrollable target', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('uses the provided scrollable target as the IO root', () => {
     const next = jest.fn();
 
     const target = document.createElement('div');
     target.id = 'scrollableDiv';
     document.body.appendChild(target);
-
-    Object.defineProperty(target, 'clientHeight', {
-      configurable: true,
-      get: () => 100,
-    });
-    Object.defineProperty(target, 'scrollHeight', {
-      configurable: true,
-      get: () => 200,
-    });
-    Object.defineProperty(target, 'scrollTop', {
-      configurable: true,
-      get: () => 100,
-    });
 
     render(
       <InfiniteScroll
@@ -41,11 +31,38 @@ describe('scrollableTarget as element id', () => {
       </InfiniteScroll>
     );
 
-    target.dispatchEvent(new Event('scroll'));
+    // IO root should be the resolved scrollable element
+    expect(MockIntersectionObserver.instances[0].options.root).toBe(target);
 
-    jest.advanceTimersByTime(200);
+    // Triggering intersection calls next
+    act(() => {
+      MockIntersectionObserver.instances[0].triggerIntersect();
+    });
 
     expect(next).toHaveBeenCalled();
+
+    document.body.removeChild(target);
+  });
+
+  it('accepts an HTMLElement directly as scrollableTarget', () => {
+    const next = jest.fn();
+
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+
+    render(
+      <InfiniteScroll
+        dataLength={0}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+        scrollableTarget={target}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    expect(MockIntersectionObserver.instances[0].options.root).toBe(target);
 
     document.body.removeChild(target);
   });
