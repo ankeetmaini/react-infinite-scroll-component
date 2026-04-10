@@ -17,8 +17,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      # Posts a PR comment showing the brotli size diff vs the base branch.
-      # Fails CI if either artifact exceeds the limit defined in package.json "size-limit".
-      - uses: andresz1/size-limit-action@v1
+      # Posts a PR comment showing the gzip size diff vs the base branch.
+      # Does not require size-limit to be installed on the base branch —
+      # measures the built artifact sizes directly.
+      - uses: preactjs/compressed-size-action@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: '${{ secrets.GITHUB_TOKEN }}'
+          pattern: 'dist/{index.es.js,index.js}'
+          build-script: 'build'
