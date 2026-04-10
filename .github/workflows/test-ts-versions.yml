@@ -11,7 +11,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        typescript: ['4.5', '4.7', '4.9', '5.0', '5.4', 'latest']
+        # 4.9 is the baseline pinned in devDependencies.
+        # 4.5/4.7 omitted — transitive @types/node uses accessor syntax requiring TS 4.9+,
+        # causing parse errors that skipLibCheck cannot suppress.
+        typescript: ['4.9', '5.0', '5.4', 'latest']
 
     name: TypeScript ${{ matrix.typescript }}
 
@@ -30,7 +33,16 @@ jobs:
       - name: Swap to TypeScript ${{ matrix.typescript }}
         run: yarn add --dev typescript@${{ matrix.typescript }}
 
-      # Run type-check only — tests themselves don't need to pass under every TS version,
-      # but the public API surface (src/index.tsx + utils) must type-check cleanly.
-      - name: Type check
-        run: yarn ts-check
+      # Type-check the library source only (tsconfig.lib.json excludes __tests__).
+      # Test files need @types/jest globals which changed resolution in TS 6+,
+      # so we validate the public API surface in isolation.
+      # TS 6.x deprecated moduleResolution:node — pass ignoreDeprecations via CLI
+      # (it's a TS 5.0+ option so cannot live in tsconfig.json for our 4.9 matrix job).
+      - name: Type check library source
+        run: |
+          TS_MAJOR=$(npx tsc --version | grep -oE '[0-9]+' | head -1)
+          if [ "$TS_MAJOR" -ge 6 ]; then
+            npx tsc -p tsconfig.lib.json --noEmit --ignoreDeprecations 6.0
+          else
+            npx tsc -p tsconfig.lib.json --noEmit
+          fi
