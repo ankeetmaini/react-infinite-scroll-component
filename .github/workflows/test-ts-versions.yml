@@ -1,0 +1,48 @@
+name: Test TypeScript Versions
+
+on:
+  push:
+    branches: [master, 'feat/**', 'fix/**', 'ci/**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 4.9 is the baseline pinned in devDependencies.
+        # 4.5/4.7 omitted — transitive @types/node uses accessor syntax requiring TS 4.9+,
+        # causing parse errors that skipLibCheck cannot suppress.
+        typescript: ['4.9', '5.0', '5.4', 'latest']
+
+    name: TypeScript ${{ matrix.typescript }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Swap to TypeScript ${{ matrix.typescript }}
+        run: yarn add --dev typescript@${{ matrix.typescript }}
+
+      # Type-check the library source only (tsconfig.lib.json excludes __tests__).
+      # Test files need @types/jest globals which changed resolution in TS 6+,
+      # so we validate the public API surface in isolation.
+      # TS 6.x deprecated moduleResolution:node — pass ignoreDeprecations via CLI
+      # (it's a TS 5.0+ option so cannot live in tsconfig.json for our 4.9 matrix job).
+      - name: Type check library source
+        run: |
+          TS_MAJOR=$(npx tsc --version | grep -oE '[0-9]+' | head -1)
+          if [ "$TS_MAJOR" -ge 6 ]; then
+            npx tsc -p tsconfig.lib.json --noEmit --ignoreDeprecations 6.0
+          else
+            npx tsc -p tsconfig.lib.json --noEmit
+          fi

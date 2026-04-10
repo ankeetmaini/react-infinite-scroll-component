@@ -1,0 +1,70 @@
+name: Test Build Artifacts
+
+on:
+  push:
+    branches: [master, 'feat/**', 'fix/**', 'ci/**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        format: [cjs, esm]
+
+    name: Artifact — ${{ matrix.format }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Smoke test CJS artifact
+        if: matrix.format == 'cjs'
+        run: |
+          node -e "
+            const m = require('./dist/index.js');
+            const component = m.default || m;
+            if (typeof component !== 'function') {
+              console.error('CJS default export is not a function, got:', typeof component);
+              process.exit(1);
+            }
+            console.log('CJS OK — default export is a function');
+          "
+
+      - name: Smoke test ESM artifact
+        if: matrix.format == 'esm'
+        run: |
+          # Verify ES module syntax is present (export keyword) and file is non-empty.
+          # A full dynamic import would require React as an ESM peer which varies by version,
+          # so we validate structure and let the React-version matrix cover runtime behaviour.
+          if ! grep -q "^export " dist/index.es.js; then
+            echo "ESM artifact missing top-level export statement"
+            exit 1
+          fi
+          echo "ESM OK — top-level export found"
+          node -e "
+            const fs = require('fs');
+            const size = fs.statSync('./dist/index.es.js').size;
+            if (size < 100) { console.error('ESM artifact suspiciously small:', size, 'bytes'); process.exit(1); }
+            console.log('ESM artifact size OK:', size, 'bytes');
+          "
+
+      - name: Type declarations exist
+        run: |
+          if [ ! -f dist/index.d.ts ]; then
+            echo "dist/index.d.ts is missing"
+            exit 1
+          fi
+          echo "Type declarations OK"

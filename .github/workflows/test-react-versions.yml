@@ -1,0 +1,42 @@
+name: Test React Versions
+
+on:
+  push:
+    branches: [master, 'feat/**', 'fix/**', 'ci/**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - react: '17'
+          - react: '18'
+
+    name: React ${{ matrix.react }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # Swap the React version before running tests.
+      # This also catches an overly-narrow peerDependencies range at install time —
+      # e.g. "^17" blocks React 18/19 and yarn add will fail here first.
+      - name: Swap to React ${{ matrix.react }}
+        run: yarn add --dev react@${{ matrix.react }} react-dom@${{ matrix.react }}
+
+      - name: Type check
+        run: yarn ts-check
+
+      - name: Unit tests
+        run: yarn test --runInBand
