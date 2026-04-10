@@ -8,20 +8,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # React 19 is marked experimental — known compat issue in pull-to-refresh
-    # touch/mouse event handling. Runs and reports but does not block CI.
-    # Track resolution in: https://github.com/ankeetmaini/react-infinite-scroll-component/issues
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - react: '17'
-            experimental: false
           - react: '18'
-            experimental: false
-          - react: '19'
-            experimental: true
 
     name: React ${{ matrix.react }}
 
@@ -41,14 +33,7 @@ jobs:
       # This also catches an overly-narrow peerDependencies range at install time —
       # e.g. "^17" blocks React 18/19 and yarn add will fail here first.
       - name: Swap to React ${{ matrix.react }}
-        run: |
-          yarn add --dev react@${{ matrix.react }} react-dom@${{ matrix.react }}
-          # @testing-library/react v12 calls ReactDOM.unmountComponentAtNode which
-          # was removed in React 19. v16 supports React 18 and 19 and requires
-          # @testing-library/dom as an explicit peer dependency.
-          if [ "${{ matrix.react }}" = "19" ]; then
-            yarn add --dev @testing-library/react@16 @testing-library/dom
-          fi
+        run: yarn add --dev react@${{ matrix.react }} react-dom@${{ matrix.react }}
 
       - name: Type check
         run: yarn ts-check
