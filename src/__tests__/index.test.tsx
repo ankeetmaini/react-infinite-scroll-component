@@ -105,6 +105,88 @@ describe('React Infinite Scroll Component', () => {
     });
   });
 
+  describe('When pullDownToRefresh is true but refreshFunction is missing', () => {
+    it('throws an error', () => {
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      expect(() =>
+        render(
+          <InfiniteScroll
+            dataLength={0}
+            loader={'Loading...'}
+            hasMore={false}
+            next={() => {}}
+            pullDownToRefresh
+          >
+            <div />
+          </InfiniteScroll>
+        )
+      ).toThrow('Mandatory prop "refreshFunction" missing');
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('initialScrollY', () => {
+    it('calls scrollTo on mount when scrollHeight exceeds initialScrollY', () => {
+      const scrollToSpy = jest.fn();
+      const originalScrollTo = HTMLElement.prototype.scrollTo;
+      HTMLElement.prototype.scrollTo = scrollToSpy as any;
+
+      Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+        configurable: true,
+        get: () => 500,
+      });
+
+      render(
+        <InfiniteScroll
+          dataLength={0}
+          loader={'Loading...'}
+          hasMore={false}
+          next={() => {}}
+          height={100}
+          initialScrollY={200}
+        >
+          <div />
+        </InfiniteScroll>
+      );
+
+      expect(scrollToSpy).toHaveBeenCalledWith(0, 200);
+
+      HTMLElement.prototype.scrollTo = originalScrollTo;
+      Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+        configurable: true,
+        get: () => 0,
+      });
+    });
+
+    it('does not call scrollTo when scrollHeight is insufficient', () => {
+      const scrollToSpy = jest.fn();
+      const originalScrollTo = HTMLElement.prototype.scrollTo;
+      HTMLElement.prototype.scrollTo = scrollToSpy as any;
+
+      // scrollHeight defaults to 0 in jsdom — less than initialScrollY
+      render(
+        <InfiniteScroll
+          dataLength={0}
+          loader={'Loading...'}
+          hasMore={false}
+          next={() => {}}
+          height={100}
+          initialScrollY={200}
+        >
+          <div />
+        </InfiniteScroll>
+      );
+
+      expect(scrollToSpy).not.toHaveBeenCalled();
+
+      HTMLElement.prototype.scrollTo = originalScrollTo;
+    });
+  });
+
   describe('When user scrolls to the bottom', () => {
     it('does not show loader if hasMore is false', () => {
       const { queryByText } = render(

@@ -73,4 +73,27 @@ describe('bottom detection triggers next', () => {
 
     expect(next).toHaveBeenCalledTimes(1);
   });
+
+  it('uses null root (viewport) in window scroll mode', () => {
+    const next = jest.fn();
+    render(
+      <InfiniteScroll
+        dataLength={0}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    // No height, no scrollableTarget → root must be null (viewport IO)
+    expect(MockIntersectionObserver.instances[0].options.root).toBeNull();
+
+    act(() => {
+      MockIntersectionObserver.instances[0].triggerIntersect();
+    });
+
+    expect(next).toHaveBeenCalled();
+  });
 });
