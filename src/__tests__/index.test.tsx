@@ -90,6 +90,28 @@ describe('React Infinite Scroll Component', () => {
     jest.useRealTimers();
   });
 
+  it('calls scroll handler via window when no height or scrollableTarget', () => {
+    jest.useFakeTimers();
+    const onScrollMock = jest.fn();
+
+    render(
+      <InfiniteScroll
+        onScroll={onScrollMock}
+        dataLength={4}
+        loader={'Loading...'}
+        hasMore={false}
+        next={() => {}}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    window.dispatchEvent(new Event('scroll'));
+    jest.runOnlyPendingTimers();
+    expect(onScrollMock).toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
   describe('When missing the dataLength prop', () => {
     it('throws an error', () => {
       const consoleSpy = jest
@@ -184,6 +206,34 @@ describe('React Infinite Scroll Component', () => {
       expect(scrollToSpy).not.toHaveBeenCalled();
 
       HTMLElement.prototype.scrollTo = originalScrollTo;
+    });
+
+    it('scrolls scrollableTarget to initialScrollY when scrollHeight is sufficient', () => {
+      const target = document.createElement('div');
+      const scrollToSpy = jest.fn();
+      target.scrollTo = scrollToSpy as unknown as typeof target.scrollTo;
+      Object.defineProperty(target, 'scrollHeight', {
+        configurable: true,
+        get: () => 500,
+      });
+      document.body.appendChild(target);
+
+      render(
+        <InfiniteScroll
+          dataLength={0}
+          loader={'Loading...'}
+          hasMore={false}
+          next={() => {}}
+          scrollableTarget={target}
+          initialScrollY={200}
+        >
+          <div />
+        </InfiniteScroll>
+      );
+
+      expect(scrollToSpy).toHaveBeenCalledWith(0, 200);
+
+      document.body.removeChild(target);
     });
   });
 

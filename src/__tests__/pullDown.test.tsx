@@ -116,4 +116,218 @@ describe('pull down to refresh', () => {
 
     expect(refresh).toHaveBeenCalled();
   });
+
+  it('does not start drag when scrollTop > 0', () => {
+    const refresh = jest.fn();
+    const { container } = render(
+      <InfiniteScroll
+        dataLength={10}
+        loader={'Loading...'}
+        hasMore={true}
+        next={() => {}}
+        height={200}
+        pullDownToRefresh
+        pullDownToRefreshThreshold={50}
+        refreshFunction={refresh}
+        pullDownToRefreshContent={<div style={{ height: 100 }}>Pull</div>}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const node = container.querySelector(
+      '.infinite-scroll-component'
+    ) as HTMLElement;
+
+    // Simulate container already scrolled down
+    Object.defineProperty(node, 'scrollTop', { configurable: true, value: 50 });
+
+    const down = new MouseEvent('mousedown', { bubbles: true } as any);
+    Object.defineProperty(down, 'pageY', { value: 0 });
+    act(() => {
+      node.dispatchEvent(down);
+    });
+
+    // Move should have no effect since drag was never started
+    const move = new MouseEvent('mousemove', { bubbles: true } as any);
+    Object.defineProperty(move, 'pageY', { value: 60 });
+    act(() => {
+      node.dispatchEvent(move);
+    });
+
+    expect(node.style.transform).toBe('');
+
+    // Reset scrollTop
+    Object.defineProperty(node, 'scrollTop', { configurable: true, value: 0 });
+  });
+
+  it('ignores upward pull (currentY < startY)', () => {
+    const refresh = jest.fn();
+    const { container } = render(
+      <InfiniteScroll
+        dataLength={10}
+        loader={'Loading...'}
+        hasMore={true}
+        next={() => {}}
+        height={200}
+        pullDownToRefresh
+        pullDownToRefreshThreshold={50}
+        refreshFunction={refresh}
+        pullDownToRefreshContent={<div style={{ height: 100 }}>Pull</div>}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const node = container.querySelector(
+      '.infinite-scroll-component'
+    ) as HTMLElement;
+
+    const down = new MouseEvent('mousedown', { bubbles: true } as any);
+    Object.defineProperty(down, 'pageY', { value: 100 });
+    act(() => {
+      node.dispatchEvent(down);
+    });
+
+    // Move upward (pageY < startY)
+    const move = new MouseEvent('mousemove', { bubbles: true } as any);
+    Object.defineProperty(move, 'pageY', { value: 40 });
+    act(() => {
+      node.dispatchEvent(move);
+    });
+
+    // No transform applied for upward pull
+    expect(node.style.transform).toBe('');
+  });
+
+  it('caps transform at 1.5x maxPullDownDistance', () => {
+    const refresh = jest.fn();
+    const { container } = render(
+      <InfiniteScroll
+        dataLength={10}
+        loader={'Loading...'}
+        hasMore={true}
+        next={() => {}}
+        height={200}
+        pullDownToRefresh
+        pullDownToRefreshThreshold={50}
+        refreshFunction={refresh}
+        pullDownToRefreshContent={<div style={{ height: 100 }}>Pull</div>}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const node = container.querySelector(
+      '.infinite-scroll-component'
+    ) as HTMLElement;
+
+    const down = new MouseEvent('mousedown', { bubbles: true } as any);
+    Object.defineProperty(down, 'pageY', { value: 0 });
+    act(() => {
+      node.dispatchEvent(down);
+    });
+
+    // Pull 60px — within cap (100 * 1.5 = 150), transform applied
+    const move1 = new MouseEvent('mousemove', { bubbles: true } as any);
+    Object.defineProperty(move1, 'pageY', { value: 60 });
+    act(() => {
+      node.dispatchEvent(move1);
+    });
+    expect(node.style.transform).toBe('translate3d(0px, 60px, 0px)');
+
+    // Pull 200px — exceeds cap (150px), transform NOT updated
+    const move2 = new MouseEvent('mousemove', { bubbles: true } as any);
+    Object.defineProperty(move2, 'pageY', { value: 200 });
+    act(() => {
+      node.dispatchEvent(move2);
+    });
+    // Transform stays at 60px because the 200px delta exceeds the 1.5x cap
+    expect(node.style.transform).toBe('translate3d(0px, 60px, 0px)');
+  });
+
+  it('calls refreshFunction in window-scroll PTR mode (no height)', () => {
+    // Exercises the scrollEl = window path (line 218 false branch) in PTR onStart
+    const refresh = jest.fn();
+    const { container } = render(
+      <InfiniteScroll
+        dataLength={10}
+        loader={'Loading...'}
+        hasMore={true}
+        next={() => {}}
+        pullDownToRefresh
+        pullDownToRefreshThreshold={50}
+        refreshFunction={refresh}
+        pullDownToRefreshContent={<div style={{ height: 100 }}>Pull</div>}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const node = container.querySelector(
+      '.infinite-scroll-component'
+    ) as HTMLElement;
+
+    // Listeners are attached to window when there is no height prop
+    const down = new MouseEvent('mousedown', { bubbles: true } as any);
+    Object.defineProperty(down, 'pageY', { value: 0 });
+    act(() => {
+      window.dispatchEvent(down);
+    });
+
+    const move = new MouseEvent('mousemove', { bubbles: true } as any);
+    Object.defineProperty(move, 'pageY', { value: 60 });
+    act(() => {
+      window.dispatchEvent(move);
+    });
+
+    expect(node.style.transform).toBe('translate3d(0px, 60px, 0px)');
+
+    const up = new MouseEvent('mouseup', { bubbles: true } as any);
+    act(() => {
+      window.dispatchEvent(up);
+    });
+
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it('shows releaseToRefreshContent when threshold is breached', () => {
+    const { container, getByText, queryByText } = render(
+      <InfiniteScroll
+        dataLength={10}
+        loader={'Loading...'}
+        hasMore={true}
+        next={() => {}}
+        height={200}
+        pullDownToRefresh
+        pullDownToRefreshThreshold={50}
+        refreshFunction={() => {}}
+        pullDownToRefreshContent={<div>Pull down</div>}
+        releaseToRefreshContent={<div>Release to refresh</div>}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const node = container.querySelector(
+      '.infinite-scroll-component'
+    ) as HTMLElement;
+
+    expect(queryByText('Release to refresh')).toBeNull();
+
+    const down = new MouseEvent('mousedown', { bubbles: true } as any);
+    Object.defineProperty(down, 'pageY', { value: 0 });
+    act(() => {
+      node.dispatchEvent(down);
+    });
+
+    // Pull past threshold (60 > 50)
+    const move = new MouseEvent('mousemove', { bubbles: true } as any);
+    Object.defineProperty(move, 'pageY', { value: 60 });
+    act(() => {
+      node.dispatchEvent(move);
+    });
+
+    expect(getByText('Release to refresh')).toBeTruthy();
+  });
 });
