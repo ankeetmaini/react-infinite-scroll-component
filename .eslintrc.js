@@ -39,4 +39,13 @@ module.exports = {
     '@typescript-eslint/no-empty-object-type': 'warn',
     'react/no-deprecated': 'warn',
   },
+  overrides: [
+    {
+      files: ['src/stories/**/*.{ts,tsx}'],
+      parserOptions: {
+        project: path.resolve(__dirname, './tsconfig.storybook.json'),
+        tsconfigRootDir: __dirname,
+      },
+    },
+  ],
 };
