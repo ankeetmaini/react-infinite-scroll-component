@@ -18,6 +18,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'prettier',
+    'plugin:storybook/recommended',
   ],
   settings: {
     react: {
