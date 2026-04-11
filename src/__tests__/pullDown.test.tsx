@@ -72,4 +72,48 @@ describe('pull down to refresh', () => {
 
     expect(refresh).toHaveBeenCalled();
   });
+
+  it('calls refreshFunction after touch pull past threshold', () => {
+    const refresh = jest.fn();
+    const { container } = render(
+      <InfiniteScroll
+        dataLength={10}
+        loader={'Loading...'}
+        hasMore={true}
+        next={() => {}}
+        height={200}
+        pullDownToRefresh
+        pullDownToRefreshThreshold={50}
+        refreshFunction={refresh}
+        pullDownToRefreshContent={<div style={{ height: 100 }}>Pull</div>}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const node = container.querySelector(
+      '.infinite-scroll-component'
+    ) as HTMLElement;
+
+    const touchStart = new TouchEvent('touchstart', { bubbles: true });
+    Object.defineProperty(touchStart, 'touches', { value: [{ pageY: 0 }] });
+    act(() => {
+      node.dispatchEvent(touchStart);
+    });
+
+    const touchMove = new TouchEvent('touchmove', { bubbles: true });
+    Object.defineProperty(touchMove, 'touches', { value: [{ pageY: 60 }] });
+    act(() => {
+      node.dispatchEvent(touchMove);
+    });
+
+    expect(node.style.transform).toBe('translate3d(0px, 60px, 0px)');
+
+    const touchEnd = new TouchEvent('touchend', { bubbles: true });
+    act(() => {
+      node.dispatchEvent(touchEnd);
+    });
+
+    expect(refresh).toHaveBeenCalled();
+  });
 });

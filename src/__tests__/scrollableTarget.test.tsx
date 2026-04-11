@@ -66,4 +66,25 @@ describe('scrollableTarget as element id', () => {
 
     document.body.removeChild(target);
   });
+
+  it('warns when scrollableTarget is null', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    render(
+      <InfiniteScroll
+        dataLength={0}
+        loader={'Loading...'}
+        hasMore={true}
+        next={() => {}}
+        scrollableTarget={null}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('scrollableTarget but it is null')
+    );
+    warnSpy.mockRestore();
+  });
 });
