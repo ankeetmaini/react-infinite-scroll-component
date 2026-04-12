@@ -50,7 +50,7 @@ export class MockIntersectionObserver {
 }
 
 // Assign globally so `new IntersectionObserver(...)` in the component resolves to the mock.
-Object.defineProperty(global, 'IntersectionObserver', {
+Object.defineProperty(globalThis, 'IntersectionObserver', {
   writable: true,
   configurable: true,
   value: MockIntersectionObserver,

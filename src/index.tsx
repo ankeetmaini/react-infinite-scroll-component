@@ -27,7 +27,7 @@ export interface Props {
   releaseToRefreshContent?: ReactNode;
   pullDownToRefreshThreshold?: number;
   refreshFunction?: Fn;
-  onScroll?: (e: MouseEvent) => any;
+  onScroll?: (e: UIEvent) => any;
   dataLength: number;
   initialScrollY?: number;
   className?: string;
@@ -145,6 +145,7 @@ export default function InfiniteScroll({
   // direction changes — typically never after initial mount.
   useEffect(() => {
     if (!hasMore) return;
+    if (typeof IntersectionObserver === 'undefined') return;
 
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
@@ -181,7 +182,7 @@ export default function InfiniteScroll({
     if (!scrollEl) return;
 
     const handler = (e: Event) => {
-      setTimeout(() => onScroll(e as MouseEvent), 0);
+      setTimeout(() => onScroll(e as UIEvent), 0);
     };
 
     scrollEl.addEventListener('scroll', handler as EventListener);
@@ -329,6 +330,7 @@ export default function InfiniteScroll({
         ref={infScrollRef}
         style={containerStyle}
       >
+        {inverse && sentinel}
         {pullDownToRefresh && (
           <div style={{ position: 'relative' }} ref={pullDownRef}>
             <div
@@ -348,7 +350,7 @@ export default function InfiniteScroll({
         {children}
         {!showLoader && !hasChildrenResolved && hasMore && loader}
         {showLoader && hasMore && loader}
-        {sentinel}
+        {!inverse && sentinel}
         {!hasMore && endMessage}
       </div>
     </div>

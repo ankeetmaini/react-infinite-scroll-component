@@ -5,7 +5,7 @@ export const ThresholdUnits = {
 
 const defaultThreshold = {
   unit: ThresholdUnits.Percent,
-  value: 0.8,
+  value: 80,
 };
 
 export function parseThreshold(scrollThreshold: string | number) {
