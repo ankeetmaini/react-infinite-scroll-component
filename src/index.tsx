@@ -330,7 +330,6 @@ export default function InfiniteScroll({
         ref={infScrollRef}
         style={containerStyle}
       >
-        {inverse && sentinel}
         {pullDownToRefresh && (
           <div style={{ position: 'relative' }} ref={pullDownRef}>
             <div
@@ -350,7 +349,7 @@ export default function InfiniteScroll({
         {children}
         {!showLoader && !hasChildrenResolved && hasMore && loader}
         {showLoader && hasMore && loader}
-        {!inverse && sentinel}
+        {sentinel}
         {!hasMore && endMessage}
       </div>
     </div>
