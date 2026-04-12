@@ -31,5 +31,5 @@ export default {
     },
   ],
   external: [...Object.keys(pkg.peerDependencies || {}), 'react/jsx-runtime'],
-  plugins: [resolve(), typescript({ tsconfig: './tsconfig.json' })],
+  plugins: [resolve(), typescript({ tsconfig: './tsconfig.lib.json' })],
 };

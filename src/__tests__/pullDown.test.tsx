@@ -7,7 +7,7 @@ describe('pull down to refresh', () => {
   beforeAll(() => {
     // ensure RAF exists
     // @ts-ignore
-    global.requestAnimationFrame = (cb: any) => cb();
+    globalThis.requestAnimationFrame = (cb: any) => cb();
     // Mock getBoundingClientRect to return a height for maxPullDownDistance
     Element.prototype.getBoundingClientRect = jest.fn(() => ({
       height: 100,
