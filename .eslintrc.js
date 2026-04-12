@@ -24,6 +24,7 @@ module.exports = {
       version: '17.0',
     },
   },
+  ignorePatterns: ['src/stories/**'],
   rules: {
     '@typescript-eslint/prefer-regexp-exec': 'warn',
     '@typescript-eslint/ban-ts-comment': 'off',
