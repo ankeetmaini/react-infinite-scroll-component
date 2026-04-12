@@ -38,7 +38,7 @@ added. An infinite-scroll that actually works and super-simple to integrate!
     </p>
   }
   // below props only if you need pull down functionality
-  refreshFunction={this.refresh}
+  refreshFunction={refresh}
   pullDownToRefresh
   pullDownToRefreshThreshold={50}
   pullDownToRefreshContent={
@@ -66,15 +66,15 @@ added. An infinite-scroll that actually works and super-simple to integrate!
 >
   {/*Put the scroll bar always on the bottom*/}
   <InfiniteScroll
-    dataLength={this.state.items.length}
-    next={this.fetchMoreData}
+    dataLength={items.length}
+    next={fetchMoreData}
     style={{ display: 'flex', flexDirection: 'column-reverse' }} //To put endMessage and loader to the top.
-    inverse={true} //
+    inverse={true}
     hasMore={true}
     loader={<h4>Loading...</h4>}
     scrollableTarget="scrollableDiv"
   >
-    {this.state.items.map((_, index) => (
+    {items.map((_, index) => (
       <div style={style} key={index}>
         div - #{index}
       </div>
@@ -88,6 +88,40 @@ The `InfiniteScroll` component can be used in three ways.
 - Specify a value for the `height` prop if you want your **scrollable** content to have a specific height, providing scrollbars for scrolling your content and fetching more data.
 - If your **scrollable** content is being rendered within a parent element that is already providing overflow scrollbars, you can set the `scrollableTarget` prop to reference the DOM element and use it's scrollbars for fetching more data.
 - Without setting either the `height` or `scrollableTarget` props, the scroll will happen at `document.body` like _Facebook's_ timeline scroll.
+
+## What's new in v7
+
+### IntersectionObserver-based triggering
+
+`next()` is now triggered by an `IntersectionObserver` watching an invisible sentinel element at the bottom of the list (top for `inverse` mode), rather than a scroll event listener. This means:
+
+- The threshold is checked once when the sentinel enters the viewport, not on every scroll tick.
+- No missed triggers when content loads fast enough to skip the threshold.
+- Better performance — no work done while the user is scrolling through content that is far from the threshold.
+
+### Zero runtime dependencies
+
+`throttle-debounce` has been removed. The package now ships with **zero runtime dependencies**. The `onScroll` callback receives every scroll event directly without throttling.
+
+### `scrollableTarget` accepts `HTMLElement` directly
+
+Previously `scrollableTarget` only accepted a string element ID. It now accepts `HTMLElement | string | null`, so you can pass a ref value directly:
+
+```jsx
+const ref = useRef(null);
+// ...
+<div ref={ref} style={{ height: 300, overflow: 'auto' }}>
+  <InfiniteScroll scrollableTarget={ref.current} ...>
+    {items}
+  </InfiniteScroll>
+</div>
+```
+
+### Rewritten as a function component
+
+The component is now a React function component. The public prop API is unchanged — no migration needed.
+
+---
 
 ## docs version wise
 
@@ -114,7 +148,7 @@ The `InfiniteScroll` component can be used in three ways.
 | **dataLength**                 | number               | set the length of the data.This will unlock the subsequent calls to next.                                                                                                                                                                                                                                                                     |
 | **loader**                     | node                 | you can send a loader component to show while the component waits for the next load of data. e.g. `<h3>Loading...</h3>` or any fancy loader element                                                                                                                                                                                           |
 | **scrollThreshold**            | number &#124; string | A threshold value defining when `InfiniteScroll` will call `next`. Default value is `0.8`. It means the `next` will be called when user comes below 80% of the total height. If you pass threshold in pixels (`scrollThreshold="200px"`), `next` will be called once you scroll at least (100% - scrollThreshold) pixels down.                |
-| **onScroll**                   | function             | a function that will listen to the scroll event on the scrolling container. Note that the scroll event is throttled, so you may not receive as many events as you would expect.                                                                                                                                                               |
+| **onScroll**                   | function             | a function that will listen to the scroll event on the scrolling container.                                                                                                                                                                                                                                                                   |
 | **endMessage**                 | node                 | this message is shown to the user when he has seen all the records which means he's at the bottom and `hasMore` is `false`                                                                                                                                                                                                                    |
 | **className**                  | string               | add any custom class you want                                                                                                                                                                                                                                                                                                                 |
 | **style**                      | object               | any style which you want to override                                                                                                                                                                                                                                                                                                          |
