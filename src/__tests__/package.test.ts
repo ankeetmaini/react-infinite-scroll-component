@@ -1,5 +1,3 @@
-export {};
-
 /**
  * Validates package.json fields that affect consumers at install time.
  * These checks run on every `yarn test` invocation — no extra infrastructure needed.
@@ -8,11 +6,7 @@ export {};
  * that block React 18/19 consumers at npm install, like #419.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pkg = require('../../package.json') as {
-  peerDependencies: Record<string, string>;
-  devDependencies: Record<string, string>;
-};
+import pkg from '../../package.json';
 
 describe('package.json — peer dependency ranges', () => {
   it('react peer dep uses >= (open-ended), not ^ (caret-bounded)', () => {

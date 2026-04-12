@@ -61,7 +61,7 @@ describe('React Infinite Scroll Component', () => {
 
   it('calls scroll handler if provided, when user scrolls', () => {
     jest.useFakeTimers();
-    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    const setTimeoutSpy = jest.spyOn(globalThis, 'setTimeout');
     const onScrollMock = jest.fn();
 
     const { container } = render(

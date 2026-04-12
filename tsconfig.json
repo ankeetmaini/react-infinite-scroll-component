@@ -48,6 +48,7 @@
     ] /* Type declaration files to be included in compilation. */,
     // "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
+    "resolveJsonModule": true /* Allow importing .json files (used in package.test.ts). */,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
     // "preserveSymlinks": true,              /* Do not resolve the real path of symlinks. */
@@ -61,5 +62,5 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
   "include": ["src/**/*", "lint-staged.config.js", "jest.config.js"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "src/stories"]
 }

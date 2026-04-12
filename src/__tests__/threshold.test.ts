@@ -29,14 +29,14 @@ describe('parseThreshold', () => {
   it('warns and returns default for invalid string', () => {
     const t = parseThreshold('foo' as any);
     expect(t.unit).toBe(ThresholdUnits.Percent);
-    expect(t.value).toBe(0.8);
+    expect(t.value).toBe(80);
     expect(warnSpy).toHaveBeenCalled();
   });
 
   it('warns and returns default for non-string/number', () => {
     const t = parseThreshold(null as unknown as any);
     expect(t.unit).toBe(ThresholdUnits.Percent);
-    expect(t.value).toBe(0.8);
+    expect(t.value).toBe(80);
     expect(warnSpy).toHaveBeenCalled();
   });
 });
