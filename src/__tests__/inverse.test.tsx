@@ -52,7 +52,7 @@ describe('inverse mode triggers next near top', () => {
     expect(options.rootMargin).toBe('20% 0px 0px 0px');
   });
 
-  it('renders sentinel as first child in inverse mode', () => {
+  it('renders sentinel as last child in inverse mode', () => {
     const { container } = render(
       <InfiniteScroll
         dataLength={5}
@@ -69,8 +69,9 @@ describe('inverse mode triggers next near top', () => {
     const inner = container.querySelector(
       '.infinite-scroll-component'
     ) as HTMLElement;
-    // sentinel must be the first DOM child so the IO top-margin fires correctly
-    expect(inner.firstElementChild).toBe(
+    // sentinel is last DOM child; with flex-direction: column-reverse this puts
+    // it at the visual top, where the IO top-margin extension pre-triggers
+    expect(inner.lastElementChild).toBe(
       MockIntersectionObserver.instances[0].observedElements[0]
     );
   });
