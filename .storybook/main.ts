@@ -5,7 +5,7 @@ const config: StorybookConfig = {
     '../src/**/*.stories.@(js|jsx|ts|tsx)',
     '../src/stories/stories.tsx',
   ],
-  addons: ['@storybook/addon-essentials'],
+  addons: ['@storybook/addon-webpack5-compiler-babel'],
   framework: {
     name: '@storybook/react-webpack5',
     options: {},
