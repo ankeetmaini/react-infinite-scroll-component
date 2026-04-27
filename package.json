@@ -1,6 +1,6 @@
 {
   "name": "react-infinite-scroll-component",
-  "version": "7.1.0",
+  "version": "7.2.0",
   "description": "Infinite scroll component for React. Zero runtime dependencies, IntersectionObserver-based, TypeScript-first. Window scroll, fixed-height, and custom container modes. Pull-to-refresh and inverse (chat) scroll included.",
   "engines": {
     "node": ">=20.0.0"
