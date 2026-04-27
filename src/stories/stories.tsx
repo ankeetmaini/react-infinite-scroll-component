@@ -5,6 +5,7 @@ import PullDownToRefreshInfScroll from './PullDownToRefreshInfScroll';
 import InfiniteScrollWithHeight from './InfiniteScrollWithHeight';
 import ScrollableTargetInfiniteScroll from './ScrollableTargetInfScroll';
 import ScrolleableTop from './ScrolleableTop';
+import UseInfiniteScrollHook from './UseInfiniteScrollHook';
 
 const meta: Meta = {
   title: 'Components',
@@ -37,4 +38,9 @@ export const ScrollableTargetInfiniteScrollStory: Story = {
 export const InfiniteScrollTop: Story = {
   name: 'InfiniteScrollTop',
   render: () => <ScrolleableTop />,
+};
+
+export const UseInfiniteScrollHookStory: Story = {
+  name: 'useInfiniteScroll (hook)',
+  render: () => <UseInfiniteScrollHook />,
 };

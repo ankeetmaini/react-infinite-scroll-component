@@ -8,28 +8,114 @@ import {
 } from 'react';
 import { buildRootMargin } from './utils/buildRootMargin';
 
+export { useInfiniteScroll } from './useInfiniteScroll';
+export type {
+  UseInfiniteScrollOptions,
+  UseInfiniteScrollResult,
+} from './useInfiniteScroll';
+
 type Fn = () => any;
 
 export interface Props {
-  next: Fn;
-  hasMore: boolean;
-  children: ReactNode;
-  loader: ReactNode;
-  scrollThreshold?: number | string;
-  endMessage?: ReactNode;
-  style?: CSSProperties;
-  height?: number | string;
-  scrollableTarget?: HTMLElement | string | null;
-  hasChildren?: boolean;
-  inverse?: boolean;
-  pullDownToRefresh?: boolean;
-  pullDownToRefreshContent?: ReactNode;
-  releaseToRefreshContent?: ReactNode;
-  pullDownToRefreshThreshold?: number;
-  refreshFunction?: Fn;
-  onScroll?: (e: UIEvent) => any;
+  /**
+   * Total number of items currently rendered. Unlocks the next load when it
+   * changes. Always pass the length of your full accumulated list, not just
+   * the most recently fetched page.
+   */
   dataLength: number;
+  /**
+   * Called when the user scrolls near the end of the list. Must append new
+   * items to your list state (not replace them). The component calls this at
+   * most once per data load, guarded by an IntersectionObserver sentinel.
+   */
+  next: Fn;
+  /**
+   * Whether more data exists to load. When false, the observer stops and
+   * `endMessage` is shown instead of `loader`.
+   */
+  hasMore: boolean;
+  /**
+   * The full accumulated list of items to render. Pass every item loaded so
+   * far — the component is not paginated internally.
+   */
+  children: ReactNode;
+  /**
+   * Element shown while the next page is being fetched (while `hasMore` is
+   * true and `next` has been triggered).
+   */
+  loader: ReactNode;
+  /**
+   * How close to the end of the list before `next` fires.
+   * - Number 0–1: fraction of container height, e.g. `0.8` triggers at 80%
+   *   scrolled (default).
+   * - Pixel string: absolute offset, e.g. `"200px"` triggers 200 px before
+   *   the end.
+   * @default 0.8
+   */
+  scrollThreshold?: number | string;
+  /** Shown below the list once `hasMore` is false. */
+  endMessage?: ReactNode;
+  /** Inline styles applied to the inner scroll container. */
+  style?: CSSProperties;
+  /**
+   * Fixed height for the scroll container. When provided, a scrollable box
+   * of this height is rendered. Omit to scroll the window (document body).
+   */
+  height?: number | string;
+  /**
+   * A scrollable parent element that already provides overflow scrollbars.
+   * Accepts a DOM element reference or the element's string `id`. Pass this
+   * instead of `height` when the scroll container is owned by the parent.
+   *
+   * @example
+   * // string id
+   * scrollableTarget="scrollableDiv"
+   *
+   * @example
+   * // ref value
+   * const ref = useRef(null);
+   * <div ref={ref}><InfiniteScroll scrollableTarget={ref.current} /></div>
+   */
+  scrollableTarget?: HTMLElement | string | null;
+  /**
+   * Set to `true` when `children` is not a plain array (e.g. a single node
+   * or a fragment). Prevents the component from treating a length of 0 as
+   * "no items loaded".
+   */
+  hasChildren?: boolean;
+  /**
+   * Reverse the scroll direction: the sentinel is placed at the top of the
+   * list and `next` loads older content upward. Use with
+   * `flexDirection: 'column-reverse'` on the scroll container for chat or
+   * messaging UIs.
+   * @default false
+   */
+  inverse?: boolean;
+  /**
+   * Enable pull-down-to-refresh on touch and mouse. Requires
+   * `refreshFunction` to be provided.
+   * @default false
+   */
+  pullDownToRefresh?: boolean;
+  /** Content shown while the user is pulling down. @default <h3>Pull down to refresh</h3> */
+  pullDownToRefreshContent?: ReactNode;
+  /** Content shown when the pull threshold is breached. @default <h3>Release to refresh</h3> */
+  releaseToRefreshContent?: ReactNode;
+  /**
+   * Minimum pixels the user must pull before `refreshFunction` fires.
+   * @default 100
+   */
+  pullDownToRefreshThreshold?: number;
+  /**
+   * Called when the pull-to-refresh threshold is breached. Should reload or
+   * reset the list to fresh data.
+   */
+  refreshFunction?: Fn;
+  /** Called on every scroll event of the scroll container. */
+  onScroll?: (e: UIEvent) => any;
+  /** Scroll Y position (in pixels) to restore when the component mounts. */
   initialScrollY?: number;
+  /** CSS class name added to the inner scroll container element. */
   className?: string;
 }
 
