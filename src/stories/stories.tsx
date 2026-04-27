@@ -37,7 +37,7 @@ export const ScrollableTargetInfiniteScrollStory: Story = {
 
 export const InfiniteScrollTop: Story = {
   name: 'InfiniteScrollTop',
-  render: () => <ScrolleableTop />,
+  render: () => <ScrollableTop />,
 };
 
 export const UseInfiniteScrollHookStory: Story = {
