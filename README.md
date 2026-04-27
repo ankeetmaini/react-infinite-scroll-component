@@ -1,4 +1,4 @@
-# react-infinite-scroll-component [![npm](https://img.shields.io/npm/dt/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component) [![npm](https://img.shields.io/npm/v/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component)
+# react-infinite-scroll-component [![npm](https://img.shields.io/npm/dt/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component) [![npm](https://img.shields.io/npm/v/react-infinite-scroll-component.svg?style=flat-square)](https://www.npmjs.com/package/react-infinite-scroll-component) [![bundlephobia](https://img.shields.io/bundlephobia/minzip/react-infinite-scroll-component?style=flat-square)](https://bundlephobia.com/package/react-infinite-scroll-component)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 
@@ -6,41 +6,145 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-A component to make all your infinite scrolling woes go away with just 4.15 kB! `Pull Down to Refresh` feature
-added. An infinite-scroll that actually works and super-simple to integrate!
+Infinite scroll for React. Zero runtime dependencies, [IntersectionObserver](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)-based, TypeScript-first. ~4 kB gzipped.
+
+Works with window scroll, fixed-height containers, and custom scrollable parents. Pull-to-refresh and inverse (chat) scroll included. React 17, 18, and 19 compatible.
 
 ## Install
 
 ```bash
-  npm install --save react-infinite-scroll-component
-
-  or
-
-  yarn add react-infinite-scroll-component
-
-  // in code ES6
-  import InfiniteScroll from 'react-infinite-scroll-component';
-  // or commonjs
-  var InfiniteScroll = require('react-infinite-scroll-component');
+npm install react-infinite-scroll-component
+# or
+yarn add react-infinite-scroll-component
+# or
+pnpm add react-infinite-scroll-component
 ```
 
-## Using
+## Two APIs
 
-```jsx
+| API                                                     | When to use                                                                |
+| ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [`InfiniteScroll`](#infinitescroll-component) component | Most cases, handles loader, endMessage, pull-to-refresh, inverse scroll UI |
+| [`useInfiniteScroll`](#useinfinitescroll-hook) hook     | Custom UI, you own the markup, the hook manages the observer               |
+
+---
+
+## `InfiniteScroll` component
+
+### Basic usage (TypeScript)
+
+```tsx
+import { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+type Item = { id: number; name: string };
+
+function Feed() {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchMore = async () => {
+    const next = await api.getItems({ offset: items.length });
+    if (next.length === 0) {
+      setHasMore(false);
+      return;
+    }
+    setItems((prev) => [...prev, ...next]);
+  };
+
+  return (
+    <InfiniteScroll
+      dataLength={items.length}
+      next={fetchMore}
+      hasMore={hasMore}
+      loader={<p>Loading...</p>}
+      endMessage={<p style={{ textAlign: 'center' }}>All items loaded.</p>}
+    >
+      {items.map((item) => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </InfiniteScroll>
+  );
+}
+```
+
+### Scroll inside a fixed-height container
+
+```tsx
+<div id="scrollableDiv" style={{ height: 400, overflow: 'auto' }}>
+  <InfiniteScroll
+    dataLength={items.length}
+    next={fetchMore}
+    hasMore={hasMore}
+    loader={<p>Loading...</p>}
+    scrollableTarget="scrollableDiv"
+  >
+    {items.map((item) => (
+      <div key={item.id}>{item.name}</div>
+    ))}
+  </InfiniteScroll>
+</div>
+```
+
+Pass a `ref` value directly instead of a string id:
+
+```tsx
+const containerRef = useRef<HTMLDivElement>(null);
+
+<div ref={containerRef} style={{ height: 400, overflow: 'auto' }}>
+  <InfiniteScroll
+    dataLength={items.length}
+    next={fetchMore}
+    hasMore={hasMore}
+    loader={<p>Loading...</p>}
+    scrollableTarget={containerRef.current}
+  >
+    {items.map((item) => (
+      <div key={item.id}>{item.name}</div>
+    ))}
+  </InfiniteScroll>
+</div>;
+```
+
+### Inverse scroll (chat / messaging UIs)
+
+```tsx
+<div
+  id="chatBox"
+  style={{
+    height: 500,
+    overflow: 'auto',
+    display: 'flex',
+    flexDirection: 'column-reverse',
+  }}
+>
+  <InfiniteScroll
+    dataLength={messages.length}
+    next={loadOlderMessages}
+    hasMore={hasMore}
+    loader={<p>Loading older messages...</p>}
+    inverse={true}
+    scrollableTarget="chatBox"
+    style={{ display: 'flex', flexDirection: 'column-reverse' }}
+  >
+    {messages.map((msg) => (
+      <div key={msg.id}>{msg.text}</div>
+    ))}
+  </InfiniteScroll>
+</div>
+```
+
+### Pull-to-refresh
+
+```tsx
 <InfiniteScroll
-  dataLength={items.length} //This is important field to render the next data
-  next={fetchData}
-  hasMore={true}
-  loader={<h4>Loading...</h4>}
-  endMessage={
-    <p style={{ textAlign: 'center' }}>
-      <b>Yay! You have seen it all</b>
-    </p>
-  }
-  // below props only if you need pull down functionality
-  refreshFunction={refresh}
+  dataLength={items.length}
+  next={fetchMore}
+  hasMore={hasMore}
+  loader={<p>Loading...</p>}
   pullDownToRefresh
   pullDownToRefreshThreshold={50}
+  refreshFunction={refreshList}
   pullDownToRefreshContent={
     <h3 style={{ textAlign: 'center' }}>&#8595; Pull down to refresh</h3>
   }
@@ -48,120 +152,254 @@ added. An infinite-scroll that actually works and super-simple to integrate!
     <h3 style={{ textAlign: 'center' }}>&#8593; Release to refresh</h3>
   }
 >
-  {items}
+  {items.map((item) => (
+    <div key={item.id}>{item.name}</div>
+  ))}
 </InfiniteScroll>
 ```
 
-## Using scroll on top
+---
 
-```jsx
-<div
-  id="scrollableDiv"
-  style={{
-    height: 300,
-    overflow: 'auto',
-    display: 'flex',
-    flexDirection: 'column-reverse',
-  }}
->
-  {/*Put the scroll bar always on the bottom*/}
-  <InfiniteScroll
-    dataLength={items.length}
-    next={fetchMoreData}
-    style={{ display: 'flex', flexDirection: 'column-reverse' }} //To put endMessage and loader to the top.
-    inverse={true}
-    hasMore={true}
-    loader={<h4>Loading...</h4>}
-    scrollableTarget="scrollableDiv"
-  >
-    {items.map((_, index) => (
-      <div style={style} key={index}>
-        div - #{index}
-      </div>
-    ))}
-  </InfiniteScroll>
-</div>
+## `useInfiniteScroll` hook
+
+For when you need full control over your markup. Place the `sentinelRef` div at the end of your list, the hook fires `next()` when it enters the viewport.
+
+```tsx
+import { useState } from 'react';
+import { useInfiniteScroll } from 'react-infinite-scroll-component';
+
+type Item = { id: number; name: string };
+
+function CustomFeed() {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [hasMore, setHasMore] = useState(true);
+
+  const { sentinelRef, isLoading } = useInfiniteScroll({
+    next: async () => {
+      const more = await api.getItems({ offset: items.length });
+      if (more.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      setItems((prev) => [...prev, ...more]);
+    },
+    hasMore,
+    dataLength: items.length,
+  });
+
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item.id}>{item.name}</li>
+      ))}
+      <li ref={sentinelRef} aria-hidden="true" />
+      {isLoading && <li>Loading...</li>}
+      {!hasMore && <li>All items loaded.</li>}
+    </ul>
+  );
+}
 ```
-
-The `InfiniteScroll` component can be used in three ways.
-
-- Specify a value for the `height` prop if you want your **scrollable** content to have a specific height, providing scrollbars for scrolling your content and fetching more data.
-- If your **scrollable** content is being rendered within a parent element that is already providing overflow scrollbars, you can set the `scrollableTarget` prop to reference the DOM element and use it's scrollbars for fetching more data.
-- Without setting either the `height` or `scrollableTarget` props, the scroll will happen at `document.body` like _Facebook's_ timeline scroll.
-
-## What's new in v7
-
-### IntersectionObserver-based triggering
-
-`next()` is now triggered by an `IntersectionObserver` watching an invisible sentinel element at the bottom of the list (top for `inverse` mode), rather than a scroll event listener. This means:
-
-- The threshold is checked once when the sentinel enters the viewport, not on every scroll tick.
-- No missed triggers when content loads fast enough to skip the threshold.
-- Better performance — no work done while the user is scrolling through content that is far from the threshold.
-
-### Zero runtime dependencies
-
-`throttle-debounce` has been removed. The package now ships with **zero runtime dependencies**. The `onScroll` callback receives every scroll event directly without throttling.
-
-### `scrollableTarget` accepts `HTMLElement` directly
-
-Previously `scrollableTarget` only accepted a string element ID. It now accepts `HTMLElement | string | null`, so you can pass a ref value directly:
-
-```jsx
-const ref = useRef(null);
-// ...
-<div ref={ref} style={{ height: 300, overflow: 'auto' }}>
-  <InfiniteScroll scrollableTarget={ref.current} ...>
-    {items}
-  </InfiniteScroll>
-</div>
-```
-
-### Rewritten as a function component
-
-The component is now a React function component. The public prop API is unchanged — no migration needed.
 
 ---
 
-## docs version wise
+## Framework recipes
 
-[3.0.2](docs/README-3.0.2.md)
+### Next.js App Router
+
+InfiniteScroll is a client component. Fetch initial data in a Server Component, pass it down.
+
+```tsx
+// app/feed/page.tsx, Server Component
+import { FeedClient } from './feed-client';
+import { db } from '@/lib/db';
+
+export default async function FeedPage() {
+  const initialItems = await db.items.findMany({
+    take: 20,
+    orderBy: { id: 'desc' },
+  });
+  return <FeedClient initialItems={initialItems} />;
+}
+```
+
+```tsx
+// app/feed/feed-client.tsx, Client Component
+'use client';
+
+import { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+type Item = { id: string; title: string };
+
+export function FeedClient({ initialItems }: { initialItems: Item[] }) {
+  const [items, setItems] = useState(initialItems);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchMore = async () => {
+    const res = await fetch(`/api/items?cursor=${items[items.length - 1].id}`);
+    const next: Item[] = await res.json();
+    if (next.length === 0) {
+      setHasMore(false);
+      return;
+    }
+    setItems((prev) => [...prev, ...next]);
+  };
+
+  return (
+    <InfiniteScroll
+      dataLength={items.length}
+      next={fetchMore}
+      hasMore={hasMore}
+      loader={<p>Loading...</p>}
+      endMessage={<p>You have seen everything.</p>}
+    >
+      {items.map((item) => (
+        <article key={item.id}>{item.title}</article>
+      ))}
+    </InfiniteScroll>
+  );
+}
+```
+
+### With TanStack Query
+
+```tsx
+import { useInfiniteQuery } from '@tanstack/react-query';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+function PostFeed() {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ['posts'],
+      queryFn: ({ pageParam = 0 }) => fetchPosts(pageParam),
+      getNextPageParam: (lastPage, pages) =>
+        lastPage.length === 20 ? pages.length : undefined,
+    });
+
+  const posts = data?.pages.flat() ?? [];
+
+  return (
+    <InfiniteScroll
+      dataLength={posts.length}
+      next={fetchNextPage}
+      hasMore={!!hasNextPage}
+      loader={isFetchingNextPage ? <p>Loading...</p> : null}
+      endMessage={<p>All posts loaded.</p>}
+    >
+      {posts.map((post) => (
+        <article key={post.id}>{post.title}</article>
+      ))}
+    </InfiniteScroll>
+  );
+}
+```
+
+### With SWR
+
+```tsx
+import useSWRInfinite from 'swr/infinite';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+const PAGE_SIZE = 20;
+
+function PostList() {
+  const { data, size, setSize } = useSWRInfinite(
+    (index) => `/api/posts?page=${index}&limit=${PAGE_SIZE}`,
+    fetcher
+  );
+
+  const posts = data ? data.flat() : [];
+  const hasMore = data ? data[data.length - 1].length === PAGE_SIZE : true;
+
+  return (
+    <InfiniteScroll
+      dataLength={posts.length}
+      next={() => setSize(size + 1)}
+      hasMore={hasMore}
+      loader={<p>Loading...</p>}
+    >
+      {posts.map((post) => (
+        <div key={post.id}>{post.title}</div>
+      ))}
+    </InfiniteScroll>
+  );
+}
+```
+
+---
+
+## Three scroll modes
+
+| Mode                         | How to use                              | Use case                              |
+| ---------------------------- | --------------------------------------- | ------------------------------------- |
+| **Window scroll**            | Omit `height` and `scrollableTarget`    | Social feeds, blogs, product listings |
+| **Fixed-height container**   | Pass `height` prop                      | Embedded lists, sidebars              |
+| **Custom scrollable parent** | Pass `scrollableTarget` (element or id) | Existing overflow containers          |
+
+---
+
+## Props, `InfiniteScroll`
+
+| Prop                         | Type                            | Required | Default | Description                                                                      |
+| ---------------------------- | ------------------------------- | -------- | ------- | -------------------------------------------------------------------------------- |
+| `dataLength`                 | `number`                        | yes      |         | Length of the full rendered list. Resets the load guard when it changes.         |
+| `next`                       | `() => void`                    | yes      |         | Append the next page to your list state. Called at most once per load.           |
+| `hasMore`                    | `boolean`                       | yes      |         | When false, stops the observer and shows `endMessage`.                           |
+| `loader`                     | `ReactNode`                     | yes      |         | Shown while the next page is loading.                                            |
+| `endMessage`                 | `ReactNode`                     | no       |         | Shown when `hasMore` is false.                                                   |
+| `height`                     | `number \| string`              | no       |         | Fixed height for the scroll container. Omit for window scroll.                   |
+| `scrollableTarget`           | `HTMLElement \| string \| null` | no       |         | Scrollable parent element or its DOM id.                                         |
+| `scrollThreshold`            | `number \| string`              | no       | `0.8`   | Trigger distance: fraction `0.8` = 80% scrolled, or pixel string `"200px"`.      |
+| `inverse`                    | `boolean`                       | no       | `false` | Reverse scroll direction. Use with `flexDirection: column-reverse` for chat UIs. |
+| `pullDownToRefresh`          | `boolean`                       | no       | `false` | Enable pull-to-refresh. Requires `refreshFunction`.                              |
+| `refreshFunction`            | `() => void`                    | no       |         | Called when pull threshold is breached.                                          |
+| `pullDownToRefreshThreshold` | `number`                        | no       | `100`   | Pixels to pull before `refreshFunction` fires.                                   |
+| `pullDownToRefreshContent`   | `ReactNode`                     | no       |         | Shown while pulling.                                                             |
+| `releaseToRefreshContent`    | `ReactNode`                     | no       |         | Shown when threshold is breached.                                                |
+| `onScroll`                   | `(e: UIEvent) => void`          | no       |         | Scroll event listener on the container.                                          |
+| `className`                  | `string`                        | no       | `''`    | CSS class on the inner scroll container.                                         |
+| `style`                      | `CSSProperties`                 | no       |         | Inline styles on the inner scroll container.                                     |
+| `hasChildren`                | `boolean`                       | no       |         | Set when `children` is not a plain array (single node, fragment).                |
+| `initialScrollY`             | `number`                        | no       |         | Restore scroll Y position on mount.                                              |
+
+## Props, `useInfiniteScroll`
+
+| Prop               | Type                            | Required | Default | Description                             |
+| ------------------ | ------------------------------- | -------- | ------- | --------------------------------------- |
+| `dataLength`       | `number`                        | yes      |         | Length of the full rendered list.       |
+| `next`             | `() => void`                    | yes      |         | Called when sentinel enters viewport.   |
+| `hasMore`          | `boolean`                       | yes      |         | When false, disconnects the observer.   |
+| `scrollThreshold`  | `number \| string`              | no       | `0.8`   | Trigger distance.                       |
+| `scrollableTarget` | `HTMLElement \| string \| null` | no       |         | Observer root element.                  |
+| `inverse`          | `boolean`                       | no       | `false` | Observe from the top instead of bottom. |
+
+Returns `{ sentinelRef, isLoading }`.
+
+---
+
+## What's new in v7
+
+- **IntersectionObserver-based triggering**, `next()` fires once when the sentinel enters the viewport, not on every scroll tick. No missed triggers, better performance.
+- **`useInfiniteScroll` hook**, low-level hook for building fully custom UIs.
+- **Zero runtime dependencies**, `throttle-debounce` removed.
+- **`scrollableTarget` accepts `HTMLElement`**, pass a ref value directly, not just a string id.
+- **Function component rewrite**, same public API, no migration needed.
+- **React 17, 18, 19** compatible.
+
+---
 
 ## live examples
 
-- infinite scroll (never ending) example using react (body/window scroll)
+- infinite scroll (never ending), window scroll
   - [![Edit yk7637p62z](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/yk7637p62z)
-- infinte scroll till 500 elements (body/window scroll)
+- infinite scroll till 500 elements, window scroll
   - [![Edit 439v8rmqm0](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/439v8rmqm0)
-- infinite scroll in an element (div of height 400px)
+- infinite scroll in an element (height 400px)
   - [![Edit w3w89k7x8](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/w3w89k7x8)
-- infinite scroll with `scrollableTarget` (a parent element which is scrollable)
+- infinite scroll with `scrollableTarget`
   - [![Edit r7rp40n0zm](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/r7rp40n0zm)
 
-## props
-
-| name                           | type                 | description                                                                                                                                                                                                                                                                                                                                   |
-| ------------------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **next**                       | function             | a function which must be called after reaching the bottom. It must trigger some sort of action which fetches the next data. **The data is passed as `children` to the `InfiniteScroll` component and the data should contain previous items too.** e.g. _Initial data = [1, 2, 3]_ and then next load of data should be _[1, 2, 3, 4, 5, 6]_. |
-| **hasMore**                    | boolean              | it tells the `InfiniteScroll` component on whether to call `next` function on reaching the bottom and shows an `endMessage` to the user                                                                                                                                                                                                       |
-| **children**                   | node (list)          | the data items which you need to scroll.                                                                                                                                                                                                                                                                                                      |
-| **dataLength**                 | number               | set the length of the data.This will unlock the subsequent calls to next.                                                                                                                                                                                                                                                                     |
-| **loader**                     | node                 | you can send a loader component to show while the component waits for the next load of data. e.g. `<h3>Loading...</h3>` or any fancy loader element                                                                                                                                                                                           |
-| **scrollThreshold**            | number &#124; string | A threshold value defining when `InfiniteScroll` will call `next`. Default value is `0.8`. It means the `next` will be called when user comes below 80% of the total height. If you pass threshold in pixels (`scrollThreshold="200px"`), `next` will be called once you scroll at least (100% - scrollThreshold) pixels down.                |
-| **onScroll**                   | function             | a function that will listen to the scroll event on the scrolling container.                                                                                                                                                                                                                                                                   |
-| **endMessage**                 | node                 | this message is shown to the user when he has seen all the records which means he's at the bottom and `hasMore` is `false`                                                                                                                                                                                                                    |
-| **className**                  | string               | add any custom class you want                                                                                                                                                                                                                                                                                                                 |
-| **style**                      | object               | any style which you want to override                                                                                                                                                                                                                                                                                                          |
-| **height**                     | number               | optional, give only if you want to have a fixed height scrolling content                                                                                                                                                                                                                                                                      |
-| **scrollableTarget**           | node or string       | optional, reference to a (parent) DOM element that is already providing overflow scrollbars to the `InfiniteScroll` component. _You should provide the `id` of the DOM node preferably._                                                                                                                                                      |
-| **hasChildren**                | bool                 | `children` is by default assumed to be of type array and it's length is used to determine if loader needs to be shown or not, if your `children` is not an array, specify this prop to tell if your items are 0 or more.                                                                                                                      |
-| **pullDownToRefresh**          | bool                 | to enable **Pull Down to Refresh** feature                                                                                                                                                                                                                                                                                                    |
-| **pullDownToRefreshContent**   | node                 | any JSX that you want to show the user, `default={<h3>Pull down to refresh</h3>}`                                                                                                                                                                                                                                                             |
-| **releaseToRefreshContent**    | node                 | any JSX that you want to show the user, `default={<h3>Release to refresh</h3>}`                                                                                                                                                                                                                                                               |
-| **pullDownToRefreshThreshold** | number               | minimum distance the user needs to pull down to trigger the refresh, `default=100px` , a lower value may be needed to trigger the refresh depending your users browser.                                                                                                                                                                       |
-| **refreshFunction**            | function             | this function will be called, it should return the fresh data that you want to show the user                                                                                                                                                                                                                                                  |
-| **initialScrollY**             | number               | set a scroll y position for the component to render with.                                                                                                                                                                                                                                                                                     |
-| **inverse**                    | bool                 | set infinite scroll on top                                                                                                                                                                                                                                                                                                                    |
+---
 
 ## Contributors ✨
 
@@ -182,7 +420,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/squgeim"><img src="https://avatars.githubusercontent.com/u/4996818?v=4?s=80" width="80px;" alt="Shreya Dahal"/><br /><sub><b>Shreya Dahal</b></sub></a><br /><a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=squgeim" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/vladik7244"><img src="https://avatars.githubusercontent.com/u/7922368?v=4?s=80" width="80px;" alt="Vlad Harahan"/><br /><sub><b>Vlad Harahan</b></sub></a><br /><a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=vladik7244" title="Code">💻</a> <a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=vladik7244" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/vladik7244"><img src="https://avatars.githubusercontent.com/u/vladik7244?v=4?s=80" width="80px;" alt="Vlad Harahan"/><br /><sub><b>Vlad Harahan</b></sub></a><br /><a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=vladik7244" title="Code">💻</a> <a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=vladik7244" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/danielcaldas"><img src="https://avatars.githubusercontent.com/u/11733994?v=4?s=80" width="80px;" alt="Daniel Caldas"/><br /><sub><b>Daniel Caldas</b></sub></a><br /><a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=danielcaldas" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/AlaDouagi"><img src="https://avatars.githubusercontent.com/u/42475664?v=4?s=80" width="80px;" alt="Alaeddine Douagi"/><br /><sub><b>Alaeddine Douagi</b></sub></a><br /><a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=AlaDouagi" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/echoulen"><img src="https://avatars.githubusercontent.com/u/6993621?v=4?s=80" width="80px;" alt="Carlos"/><br /><sub><b>Carlos</b></sub></a><br /><a href="https://github.com/ankeetmaini/react-infinite-scroll-component/commits?author=echoulen" title="Code">💻</a></td>
