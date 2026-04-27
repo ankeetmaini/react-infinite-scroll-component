@@ -4,7 +4,7 @@ import WindowInf from './WindowInfiniteScrollComponent';
 import PullDownToRefreshInfScroll from './PullDownToRefreshInfScroll';
 import InfiniteScrollWithHeight from './InfiniteScrollWithHeight';
 import ScrollableTargetInfiniteScroll from './ScrollableTargetInfScroll';
-import ScrolleableTop from './ScrolleableTop';
+import ScrollableTop from './ScrollableTop';
 import UseInfiniteScrollHook from './UseInfiniteScrollHook';
 
 const meta: Meta = {
