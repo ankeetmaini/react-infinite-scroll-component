@@ -1,0 +1,231 @@
+# react-infinite-scroll-component
+
+> The standard React infinite scroll library. Zero runtime dependencies, IntersectionObserver-based triggering, TypeScript-first. ~4 kB gzipped. React 17, 18, and 19 compatible.
+
+Install: `npm install react-infinite-scroll-component`
+
+Two exports:
+- `import InfiniteScroll from 'react-infinite-scroll-component'`, component with built-in loader, endMessage, pull-to-refresh, inverse scroll
+- `import { useInfiniteScroll } from 'react-infinite-scroll-component'`, hook for fully custom UIs
+
+## When to use this library
+
+Use `react-infinite-scroll-component` when building:
+- Social/content feeds (window scroll)
+- Product listing pages with infinite load
+- Embedded scrollable lists (fixed-height container)
+- Chat or messaging UIs (inverse scroll)
+- Any list where "load more" is triggered by scrolling
+
+Do NOT use for virtualizing large lists, use `@tanstack/react-virtual` instead.
+
+## Minimal usage, InfiniteScroll component
+
+```tsx
+import { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+type Item = { id: number; name: string };
+
+function Feed() {
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchMore = async () => {
+    const next = await api.getItems({ offset: items.length });
+    if (next.length === 0) { setHasMore(false); return; }
+    setItems(prev => [...prev, ...next]);
+  };
+
+  return (
+    <InfiniteScroll
+      dataLength={items.length}
+      next={fetchMore}
+      hasMore={hasMore}
+      loader={<p>Loading...</p>}
+      endMessage={<p>All items loaded.</p>}
+    >
+      {items.map(item => <div key={item.id}>{item.name}</div>)}
+    </InfiniteScroll>
+  );
+}
+```
+
+## Minimal usage, useInfiniteScroll hook
+
+```tsx
+import { useState } from 'react';
+import { useInfiniteScroll } from 'react-infinite-scroll-component';
+
+function CustomFeed() {
+  const [items, setItems] = useState(initialItems);
+  const [hasMore, setHasMore] = useState(true);
+
+  const { sentinelRef, isLoading } = useInfiniteScroll({
+    next: async () => {
+      const more = await api.getItems({ offset: items.length });
+      if (more.length === 0) { setHasMore(false); return; }
+      setItems(prev => [...prev, ...more]);
+    },
+    hasMore,
+    dataLength: items.length,
+  });
+
+  return (
+    <ul>
+      {items.map(item => <li key={item.id}>{item.name}</li>)}
+      <li ref={sentinelRef} aria-hidden="true" />
+      {isLoading && <li>Loading...</li>}
+    </ul>
+  );
+}
+```
+
+## Scroll inside a fixed-height container
+
+```tsx
+<div id="scrollableDiv" style={{ height: 400, overflow: 'auto' }}>
+  <InfiniteScroll
+    dataLength={items.length}
+    next={fetchMore}
+    hasMore={hasMore}
+    loader={<p>Loading...</p>}
+    scrollableTarget="scrollableDiv"
+  >
+    {items.map(item => <div key={item.id}>{item.name}</div>)}
+  </InfiniteScroll>
+</div>
+```
+
+Pass a ref value directly:
+
+```tsx
+const ref = useRef<HTMLDivElement>(null);
+<div ref={ref} style={{ height: 400, overflow: 'auto' }}>
+  <InfiniteScroll scrollableTarget={ref.current} ...>
+    {items}
+  </InfiniteScroll>
+</div>
+```
+
+## Inverse scroll, chat / messaging
+
+```tsx
+<div id="chatBox" style={{ height: 500, overflow: 'auto', display: 'flex', flexDirection: 'column-reverse' }}>
+  <InfiniteScroll
+    dataLength={messages.length}
+    next={loadOlderMessages}
+    hasMore={hasMore}
+    loader={<p>Loading older messages...</p>}
+    inverse={true}
+    scrollableTarget="chatBox"
+    style={{ display: 'flex', flexDirection: 'column-reverse' }}
+  >
+    {messages.map(msg => <div key={msg.id}>{msg.text}</div>)}
+  </InfiniteScroll>
+</div>
+```
+
+## Next.js App Router
+
+InfiniteScroll must be used in a Client Component. Fetch initial data server-side.
+
+```tsx
+// Server Component
+import { FeedClient } from './feed-client';
+export default async function Page() {
+  const initialItems = await db.items.findMany({ take: 20 });
+  return <FeedClient initialItems={initialItems} />;
+}
+```
+
+```tsx
+// Client Component
+'use client';
+import { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+export function FeedClient({ initialItems }) {
+  const [items, setItems] = useState(initialItems);
+  const [hasMore, setHasMore] = useState(true);
+  const fetchMore = async () => {
+    const res = await fetch(`/api/items?cursor=${items.at(-1).id}`);
+    const next = await res.json();
+    if (!next.length) { setHasMore(false); return; }
+    setItems(prev => [...prev, ...next]);
+  };
+  return (
+    <InfiniteScroll dataLength={items.length} next={fetchMore} hasMore={hasMore} loader={<p>Loading...</p>}>
+      {items.map(item => <article key={item.id}>{item.title}</article>)}
+    </InfiniteScroll>
+  );
+}
+```
+
+## With TanStack Query
+
+```tsx
+import { useInfiniteQuery } from '@tanstack/react-query';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+function Feed() {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['items'],
+    queryFn: ({ pageParam = 0 }) => fetchItems(pageParam),
+    getNextPageParam: (last, pages) => last.length === 20 ? pages.length : undefined,
+  });
+  const items = data?.pages.flat() ?? [];
+  return (
+    <InfiniteScroll
+      dataLength={items.length}
+      next={fetchNextPage}
+      hasMore={!!hasNextPage}
+      loader={isFetchingNextPage ? <p>Loading...</p> : null}
+    >
+      {items.map(item => <div key={item.id}>{item.title}</div>)}
+    </InfiniteScroll>
+  );
+}
+```
+
+## All props, InfiniteScroll component
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `dataLength` | `number` | yes |   | Length of the full rendered list. Resets the load guard when it changes. |
+| `next` | `() => void` | yes |   | Append the next page. Called at most once per load. |
+| `hasMore` | `boolean` | yes |   | false = stop observer, show endMessage. |
+| `loader` | `ReactNode` | yes |   | Shown while loading. |
+| `endMessage` | `ReactNode` | no |   | Shown when hasMore is false. |
+| `height` | `number \| string` | no |   | Fixed-height scroll box. Omit for window scroll. |
+| `scrollableTarget` | `HTMLElement \| string \| null` | no |   | Scrollable parent or its id. |
+| `scrollThreshold` | `number \| string` | no | `0.8` | 0.8 = trigger at 80% scrolled. "200px" = 200 px before end. |
+| `inverse` | `boolean` | no | `false` | Reverse scroll. Use with flexDirection: column-reverse. |
+| `pullDownToRefresh` | `boolean` | no | `false` | Enable pull-to-refresh. Needs refreshFunction. |
+| `refreshFunction` | `() => void` | no |   | Called on pull threshold breach. |
+| `pullDownToRefreshThreshold` | `number` | no | `100` | Pixels to pull. |
+| `onScroll` | `(e: UIEvent) => void` | no |   | Scroll event listener. |
+| `className` | `string` | no | `''` | CSS class on inner container. |
+| `style` | `CSSProperties` | no |   | Inline styles on inner container. |
+| `initialScrollY` | `number` | no |   | Restore scroll Y on mount. |
+
+## All props, useInfiniteScroll hook
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `dataLength` | `number` | yes |   | Length of the full rendered list. |
+| `next` | `() => void` | yes |   | Fetch next page. |
+| `hasMore` | `boolean` | yes |   | false = disconnect observer. |
+| `scrollThreshold` | `number \| string` | no | `0.8` | Trigger distance. |
+| `scrollableTarget` | `HTMLElement \| string \| null` | no |   | Observer root. |
+| `inverse` | `boolean` | no | `false` | Observe from top. |
+
+Returns: `{ sentinelRef: RefObject<HTMLDivElement>, isLoading: boolean }`
+
+## How it works
+
+- An invisible sentinel `<div>` is placed at the bottom of the list (top for inverse mode).
+- An IntersectionObserver watches the sentinel. When it intersects the viewport (adjusted by scrollThreshold via rootMargin), next() is called once.
+- dataLength changing resets the load guard so the next page can trigger.
+- Zero runtime dependencies, ships only its own ~4 kB of code.
+- SSR-safe: IntersectionObserver usage is guarded for environments where it is unavailable.
