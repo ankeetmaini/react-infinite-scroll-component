@@ -154,6 +154,15 @@ describe('useInfiniteScroll hook', () => {
     expect(rootMargin).toBe('0px 0px 20% 0px');
   });
 
+  it('does not create an observer when sentinel ref is not attached', () => {
+    function NoRefWrapper(props: UseInfiniteScrollOptions) {
+      useInfiniteScroll(props);
+      return <div />;
+    }
+    render(<NoRefWrapper next={jest.fn()} hasMore={true} dataLength={5} />);
+    expect(MockIntersectionObserver.instances).toHaveLength(0);
+  });
+
   it('does not throw when IntersectionObserver is unavailable (SSR)', () => {
     const g = globalThis as Record<string, unknown>;
     const original = g['IntersectionObserver'];
