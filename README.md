@@ -340,38 +340,38 @@ function PostList() {
 
 ## Props, `InfiniteScroll`
 
-| Prop                         | Type                            | Required | Default | Description                                                                      |
-| ---------------------------- | ------------------------------- | -------- | ------- | -------------------------------------------------------------------------------- |
-| `dataLength`                 | `number`                        | yes      |         | Length of the full rendered list. Resets the load guard when it changes.         |
-| `next`                       | `() => void`                    | yes      |         | Append the next page to your list state. Called at most once per load.           |
-| `hasMore`                    | `boolean`                       | yes      |         | When false, stops the observer and shows `endMessage`.                           |
-| `loader`                     | `ReactNode`                     | yes      |         | Shown while the next page is loading.                                            |
-| `endMessage`                 | `ReactNode`                     | no       |         | Shown when `hasMore` is false.                                                   |
-| `height`                     | `number \| string`              | no       |         | Fixed height for the scroll container. Omit for window scroll.                   |
-| `scrollableTarget`           | `HTMLElement \| string \| null` | no       |         | Scrollable parent element or its DOM id.                                         |
-| `scrollThreshold`            | `number \| string`              | no       | `0.8`   | Trigger distance: fraction `0.8` = 80% scrolled, or pixel string `"200px"`.      |
-| `inverse`                    | `boolean`                       | no       | `false` | Reverse scroll direction. Use with `flexDirection: column-reverse` for chat UIs. |
-| `pullDownToRefresh`          | `boolean`                       | no       | `false` | Enable pull-to-refresh. Requires `refreshFunction`.                              |
-| `refreshFunction`            | `() => void`                    | no       |         | Called when pull threshold is breached.                                          |
-| `pullDownToRefreshThreshold` | `number`                        | no       | `100`   | Pixels to pull before `refreshFunction` fires.                                   |
-| `pullDownToRefreshContent`   | `ReactNode`                     | no       |         | Shown while pulling.                                                             |
-| `releaseToRefreshContent`    | `ReactNode`                     | no       |         | Shown when threshold is breached.                                                |
-| `onScroll`                   | `(e: UIEvent) => void`          | no       |         | Scroll event listener on the container.                                          |
-| `className`                  | `string`                        | no       | `''`    | CSS class on the inner scroll container.                                         |
-| `style`                      | `CSSProperties`                 | no       |         | Inline styles on the inner scroll container.                                     |
-| `hasChildren`                | `boolean`                       | no       |         | Set when `children` is not a plain array (single node, fragment).                |
-| `initialScrollY`             | `number`                        | no       |         | Restore scroll Y position on mount.                                              |
+| Prop                         | Type                            | Required | Default | Description                                                                                                                                                                                                               |
+| ---------------------------- | ------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dataLength`                 | `number`                        | yes      | -       | Current count of rendered items. The component resets its load guard each time this value changes, which allows `next()` to fire again on the next scroll.                                                                |
+| `next`                       | `() => void`                    | yes      | -       | Called once when the sentinel enters the viewport. Append new items to your list state inside this callback; do not replace the existing items.                                                                           |
+| `hasMore`                    | `boolean`                       | yes      | -       | When `false`, the observer is disconnected and `next()` will not be called again. Set it to `false` when your data source has no more pages.                                                                              |
+| `loader`                     | `ReactNode`                     | yes      | -       | Rendered below the list while the next page is loading. Displayed between the last item and the bottom sentinel.                                                                                                          |
+| `endMessage`                 | `ReactNode`                     | no       | -       | Rendered below the list when `hasMore` is `false`. Use it for an "all caught up" or "no more items" message.                                                                                                              |
+| `height`                     | `number \| string`              | no       | -       | Creates a fixed-height scroll container wrapping the list. Accepts a pixel number or any CSS length string. Omit this prop to scroll the window instead.                                                                  |
+| `scrollableTarget`           | `HTMLElement \| string \| null` | no       | -       | The scrollable ancestor that already provides overflow scrollbars. Pass the element's `id` string or a direct `HTMLElement` reference. Required when the scroll container is neither the window nor the `height` wrapper. |
+| `scrollThreshold`            | `number \| string`              | no       | `0.8`   | How close to the bottom the user must scroll before `next()` is called. A fraction like `0.8` means 80% scrolled; a string like `"200px"` means within 200 px of the bottom edge.                                         |
+| `inverse`                    | `boolean`                       | no       | `false` | Reverse scroll direction for chat or messaging UIs. The sentinel moves to the top of the list. Use together with `flexDirection: column-reverse` on the scroll container.                                                 |
+| `pullDownToRefresh`          | `boolean`                       | no       | `false` | Enable pull-to-refresh gesture on touch and mouse. Requires `refreshFunction` to also be set.                                                                                                                             |
+| `refreshFunction`            | `() => void`                    | no       | -       | Called once when the user pulls down past `pullDownToRefreshThreshold` pixels and releases. Only active when `pullDownToRefresh` is `true`.                                                                               |
+| `pullDownToRefreshThreshold` | `number`                        | no       | `100`   | How many pixels the user must pull down before `refreshFunction` is triggered on release.                                                                                                                                 |
+| `pullDownToRefreshContent`   | `ReactNode`                     | no       | -       | Content shown inside the pull-to-refresh area while the user is pulling but has not yet reached the threshold.                                                                                                            |
+| `releaseToRefreshContent`    | `ReactNode`                     | no       | -       | Content shown inside the pull-to-refresh area once the threshold is passed and the user can release to trigger a refresh.                                                                                                 |
+| `onScroll`                   | `(e: UIEvent) => void`          | no       | -       | Callback fired on every scroll event on the container. Receives the native `UIEvent`. Useful for syncing UI state with scroll position.                                                                                   |
+| `className`                  | `string`                        | no       | `''`    | CSS class name applied to the inner scroll container div.                                                                                                                                                                 |
+| `style`                      | `CSSProperties`                 | no       | -       | Inline style object applied to the inner scroll container div. Merged with the component's default layout styles.                                                                                                         |
+| `hasChildren`                | `boolean`                       | no       | -       | Set to `true` when `children` is a single element or a fragment rather than an array. Helps the component detect whether visible content exists to determine scroll state.                                                |
+| `initialScrollY`             | `number`                        | no       | -       | Scrolls the window to this Y offset on mount. Useful for restoring a user's scroll position when navigating back to a page.                                                                                               |
 
 ## Props, `useInfiniteScroll`
 
-| Prop               | Type                            | Required | Default | Description                             |
-| ------------------ | ------------------------------- | -------- | ------- | --------------------------------------- |
-| `dataLength`       | `number`                        | yes      |         | Length of the full rendered list.       |
-| `next`             | `() => void`                    | yes      |         | Called when sentinel enters viewport.   |
-| `hasMore`          | `boolean`                       | yes      |         | When false, disconnects the observer.   |
-| `scrollThreshold`  | `number \| string`              | no       | `0.8`   | Trigger distance.                       |
-| `scrollableTarget` | `HTMLElement \| string \| null` | no       |         | Observer root element.                  |
-| `inverse`          | `boolean`                       | no       | `false` | Observe from the top instead of bottom. |
+| Prop               | Type                            | Required | Default | Description                                                                                                                                                                    |
+| ------------------ | ------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `dataLength`       | `number`                        | yes      | -       | Current count of rendered items. The hook resets its load guard whenever this value changes, allowing `next()` to fire again on the next intersection.                         |
+| `next`             | `() => void`                    | yes      | -       | Called once when the sentinel enters the viewport. Append new items to your list state inside this callback; do not replace the existing items.                                |
+| `hasMore`          | `boolean`                       | yes      | -       | When `false`, the `IntersectionObserver` is disconnected and `next()` will not be called again. Set it to `false` when your data source has no more pages.                     |
+| `scrollThreshold`  | `number \| string`              | no       | `0.8`   | How close to the edge the sentinel must be before `next()` fires. A fraction like `0.8` means 80% scrolled; a string like `"200px"` means within 200 px of the edge.           |
+| `scrollableTarget` | `HTMLElement \| string \| null` | no       | -       | The scrollable ancestor to use as the observer root. Pass a DOM `id` string or an `HTMLElement` reference. When omitted, the observer uses the browser viewport.               |
+| `inverse`          | `boolean`                       | no       | `false` | When `true`, the rootMargin is applied to the top edge instead of the bottom. Place the sentinel at the top of your list and use `flexDirection: column-reverse` for chat UIs. |
 
 Returns `{ sentinelRef, isLoading }`.
 
