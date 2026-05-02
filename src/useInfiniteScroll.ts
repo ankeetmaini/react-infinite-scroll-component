@@ -105,6 +105,7 @@ export function useInfiniteScroll({
   const [isLoading, setIsLoading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const actionTriggeredRef = useRef(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Stable ref so the observer callback always calls the latest next()
   // without triggering observer reconnection when an inline function is passed.
@@ -119,10 +120,21 @@ export function useInfiniteScroll({
     return null;
   }, [scrollableTarget]);
 
-  // Reset the load guard when new data arrives.
+  // Reset the load guard when new data arrives, and force the IO to
+  // re-evaluate its current intersection state. IO only fires on intersection
+  // *changes*, so if the sentinel is still in the trigger zone after a data
+  // load (e.g. user is holding the End key) no new event fires and the hook
+  // would stay stuck. unobserve + observe queues a fresh callback.
   useEffect(() => {
     actionTriggeredRef.current = false;
     setIsLoading(false);
+
+    const observer = observerRef.current;
+    const sentinel = sentinelRef.current;
+    if (observer && sentinel) {
+      observer.unobserve(sentinel);
+      observer.observe(sentinel);
+    }
   }, [dataLength]);
 
   // IntersectionObserver lifecycle.
@@ -150,7 +162,11 @@ export function useInfiniteScroll({
     );
 
     observer.observe(sentinel);
-    return () => observer.disconnect();
+    observerRef.current = observer;
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+    };
   }, [hasMore, scrollThreshold, inverse, getScrollableNode]);
 
   return { sentinelRef, isLoading };
