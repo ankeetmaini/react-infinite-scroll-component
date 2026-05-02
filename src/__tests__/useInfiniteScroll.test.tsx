@@ -90,6 +90,32 @@ describe('useInfiniteScroll hook', () => {
     expect(next).toHaveBeenCalledTimes(2);
   });
 
+  // Regression test for https://github.com/ankeetmaini/react-infinite-scroll-component/issues/429
+  // IO only fires on intersection state changes. If the sentinel stays inside
+  // the trigger zone across a data load (e.g. user holding the End key) no
+  // new event fires and the hook gets stuck. The fix re-observes the sentinel
+  // on every dataLength change so a real IO would queue a fresh callback.
+  it('re-observes sentinel on dataLength change so IO re-fires while still intersecting', () => {
+    const next = jest.fn();
+    const { rerender, getByTestId } = render(
+      <HookWrapper next={next} hasMore={true} dataLength={10} />
+    );
+
+    const observer = MockIntersectionObserver.instances[0];
+    const sentinel = getByTestId('sentinel');
+    expect(observer.observedElements).toContain(sentinel);
+
+    const observeSpy = jest.spyOn(observer, 'observe');
+    const unobserveSpy = jest.spyOn(observer, 'unobserve');
+
+    rerender(<HookWrapper next={next} hasMore={true} dataLength={20} />);
+
+    expect(unobserveSpy).toHaveBeenCalledWith(sentinel);
+    expect(observeSpy).toHaveBeenCalledWith(sentinel);
+    // Same observer instance is reused (not torn down and rebuilt on every load)
+    expect(MockIntersectionObserver.instances).toHaveLength(1);
+  });
+
   it('uses scrollableTarget string id as the IO root', () => {
     const target = document.createElement('div');
     target.id = 'hookScroll';
