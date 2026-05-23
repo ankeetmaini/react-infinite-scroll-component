@@ -5,6 +5,7 @@ import {
   useCallback,
   ReactNode,
   CSSProperties,
+  HTMLAttributes,
 } from 'react';
 import { buildRootMargin } from './utils/buildRootMargin';
 
@@ -16,7 +17,11 @@ export type {
 
 type Fn = () => any;
 
-export interface Props {
+export interface Props
+  extends Omit<
+    HTMLAttributes<HTMLDivElement>,
+    'children' | 'style' | 'className' | 'onScroll'
+  > {
   /**
    * Total number of items currently rendered. Unlocks the next load when it
    * changes. Always pass the length of your full accumulated list, not just
@@ -140,6 +145,7 @@ export default function InfiniteScroll({
   dataLength,
   initialScrollY,
   className = '',
+  ...containerProps
 }: Props) {
   const [showLoader, setShowLoader] = useState(false);
   const [pullToRefreshThresholdBreached, setPullToRefreshThresholdBreached] =
@@ -410,6 +416,7 @@ export default function InfiniteScroll({
   return (
     <div style={outerDivStyle} className="infinite-scroll-component__outerdiv">
       <div
+        {...containerProps}
         className={['infinite-scroll-component', className]
           .filter(Boolean)
           .join(' ')}

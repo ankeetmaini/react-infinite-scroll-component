@@ -45,6 +45,27 @@ describe('React Infinite Scroll Component', () => {
     expect(container.querySelectorAll('.custom-class').length).toBe(1);
   });
 
+  it('passes accessibility attributes to the scroll container', () => {
+    const { container } = render(
+      <InfiniteScroll
+        dataLength={4}
+        loader={'Loading...'}
+        hasMore={false}
+        next={() => {}}
+        role="list"
+        aria-label="Loaded items"
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    const scrollContainer = container.querySelector(
+      '.infinite-scroll-component'
+    );
+    expect(scrollContainer?.getAttribute('role')).toBe('list');
+    expect(scrollContainer?.getAttribute('aria-label')).toBe('Loaded items');
+  });
+
   it('renders children when passed in', () => {
     const { container } = render(
       <InfiniteScroll
