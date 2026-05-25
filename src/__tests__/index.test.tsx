@@ -52,7 +52,9 @@ describe('React Infinite Scroll Component', () => {
         loader={'Loading...'}
         hasMore={false}
         next={() => {}}
+        id="loaded-items"
         role="list"
+        tabIndex={0}
         aria-label="Loaded items"
       >
         <div />
@@ -62,7 +64,9 @@ describe('React Infinite Scroll Component', () => {
     const scrollContainer = container.querySelector(
       '.infinite-scroll-component'
     );
+    expect(scrollContainer?.getAttribute('id')).toBe('loaded-items');
     expect(scrollContainer?.getAttribute('role')).toBe('list');
+    expect(scrollContainer?.getAttribute('tabindex')).toBe('0');
     expect(scrollContainer?.getAttribute('aria-label')).toBe('Loaded items');
   });
 

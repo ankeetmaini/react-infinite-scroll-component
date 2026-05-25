@@ -5,7 +5,8 @@ import {
   useCallback,
   ReactNode,
   CSSProperties,
-  HTMLAttributes,
+  AriaAttributes,
+  AriaRole,
 } from 'react';
 import { buildRootMargin } from './utils/buildRootMargin';
 
@@ -17,11 +18,7 @@ export type {
 
 type Fn = () => any;
 
-export interface Props
-  extends Omit<
-    HTMLAttributes<HTMLDivElement>,
-    'children' | 'style' | 'className' | 'onScroll'
-  > {
+export interface Props extends AriaAttributes {
   /**
    * Total number of items currently rendered. Unlocks the next load when it
    * changes. Always pass the length of your full accumulated list, not just
@@ -122,6 +119,12 @@ export interface Props
   initialScrollY?: number;
   /** CSS class name added to the inner scroll container element. */
   className?: string;
+  /** Accessibility role applied to the inner scroll container element. */
+  role?: AriaRole;
+  /** Tab order for keyboard focus management on the inner scroll container. */
+  tabIndex?: number;
+  /** DOM id for labelling or controlling the inner scroll container. */
+  id?: string;
 }
 
 export default function InfiniteScroll({
@@ -145,7 +148,10 @@ export default function InfiniteScroll({
   dataLength,
   initialScrollY,
   className = '',
-  ...containerProps
+  role,
+  tabIndex,
+  id,
+  ...ariaProps
 }: Props) {
   const [showLoader, setShowLoader] = useState(false);
   const [pullToRefreshThresholdBreached, setPullToRefreshThresholdBreached] =
@@ -416,7 +422,10 @@ export default function InfiniteScroll({
   return (
     <div style={outerDivStyle} className="infinite-scroll-component__outerdiv">
       <div
-        {...containerProps}
+        {...ariaProps}
+        role={role}
+        tabIndex={tabIndex}
+        id={id}
         className={['infinite-scroll-component', className]
           .filter(Boolean)
           .join(' ')}
