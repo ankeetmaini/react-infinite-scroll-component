@@ -185,6 +185,7 @@ export default function InfiniteScroll({
   const startYRef = useRef(0);
   const currentYRef = useRef(0);
   const maxPullDownDistanceRef = useRef(0); // kept in sync with maxPullDownDistance state
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Resolve the custom scrollable element; stable as long as scrollableTarget doesn't change
   const getScrollableNode = useCallback((): HTMLElement | null => {
@@ -235,6 +236,19 @@ export default function InfiniteScroll({
   useEffect(() => {
     actionTriggeredRef.current = false;
     setShowLoader(false);
+
+    // Re-observe the sentinel to force the IO to re-evaluate its current
+    // intersection state. IO only fires on intersection *changes*, so if the
+    // user keeps the sentinel inside the trigger zone (e.g. holding the End
+    // key), no new event fires after a data load and the component would
+    // stay stuck until the user scrolled away and back. unobserve + observe
+    // queues a fresh callback with the current state.
+    const observer = observerRef.current;
+    const sentinel = sentinelRef.current;
+    if (observer && sentinel) {
+      observer.unobserve(sentinel);
+      observer.observe(sentinel);
+    }
   }, [dataLength]);
 
   // Effect 2b — IntersectionObserver lifecycle.
@@ -267,7 +281,11 @@ export default function InfiniteScroll({
     );
 
     observer.observe(sentinel);
-    return () => observer.disconnect();
+    observerRef.current = observer;
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+    };
   }, [hasMore, scrollThreshold, inverse, height, getScrollableNode]);
 
   // Effect 3 — onScroll passthrough (only when prop is provided)

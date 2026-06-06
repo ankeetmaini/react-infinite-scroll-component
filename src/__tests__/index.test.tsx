@@ -279,6 +279,50 @@ describe('React Infinite Scroll Component', () => {
       expect(queryByText('Loading...')).toBeFalsy();
     });
 
+    // Regression test for https://github.com/ankeetmaini/react-infinite-scroll-component/issues/429
+    // IO only fires on intersection state changes. If the sentinel stays
+    // inside the trigger zone across a data load (e.g. user holding the End
+    // key) no new event fires and the component gets stuck. The fix re-
+    // observes the sentinel on every dataLength change so a real IO would
+    // queue a fresh callback.
+    it('re-observes sentinel on dataLength change so IO re-fires while still intersecting', () => {
+      const next = jest.fn();
+      const { rerender } = render(
+        <InfiniteScroll
+          dataLength={4}
+          loader={'Loading...'}
+          hasMore={true}
+          next={next}
+          height={100}
+        >
+          <div />
+        </InfiniteScroll>
+      );
+
+      const observer = MockIntersectionObserver.instances[0];
+      const sentinel = observer.observedElements[0];
+
+      const observeSpy = jest.spyOn(observer, 'observe');
+      const unobserveSpy = jest.spyOn(observer, 'unobserve');
+
+      rerender(
+        <InfiniteScroll
+          dataLength={8}
+          loader={'Loading...'}
+          hasMore={true}
+          next={next}
+          height={100}
+        >
+          <div />
+        </InfiniteScroll>
+      );
+
+      expect(unobserveSpy).toHaveBeenCalledWith(sentinel);
+      expect(observeSpy).toHaveBeenCalledWith(sentinel);
+      // Same observer instance is reused, not rebuilt on every load
+      expect(MockIntersectionObserver.instances).toHaveLength(1);
+    });
+
     it('shows loader if hasMore is true after IO fires', () => {
       const { getByText } = render(
         <InfiniteScroll
