@@ -355,13 +355,53 @@ function PostList() {
 | `refreshFunction`            | `() => void`                       | no       | -       | Called once when the user pulls down past `pullDownToRefreshThreshold` pixels and releases. Only active when `pullDownToRefresh` is `true`.                                                                               |
 | `pullDownToRefreshThreshold` | `number`                           | no       | `100`   | How many pixels the user must pull down before `refreshFunction` is triggered on release.                                                                                                                                 |
 | `pullDownToRefreshContent`   | `ReactNode`                        | no       | -       | Content shown inside the pull-to-refresh area while the user is pulling but has not yet reached the threshold.                                                                                                            |
-| `releaseToRefreshContent`    | `ReactNode`                        | no       | -       | Content shown inside the pull-to-refresh area once the threshold is passed and the user can release to trigger a refresh.                                                                                                 |
+| `releaseToRefreshContent`    | `ReactNode`                        | no       | -       | Content shown inside the pull-to-refresh area once the threshold is passed and the user can release to refresh.                                                                                                           |
 | `onScroll`                   | `(e: UIEvent) => void`             | no       | -       | Callback fired on every scroll event on the container. Receives the native `UIEvent`. Useful for syncing UI state with scroll position.                                                                                   |
 | `className`                  | `string`                           | no       | `''`    | CSS class name applied to the inner scroll container div.                                                                                                                                                                 |
 | `style`                      | `CSSProperties`                    | no       | -       | Inline style object applied to the inner scroll container div. Merged with the component's default layout styles.                                                                                                         |
-| Accessibility attributes     | `aria-*`, `role`, `tabIndex`, `id` | no       | -       | Accessibility attributes applied to the inner scroll container div for labelling, semantics, and keyboard focus management.                                                                                               |
+| `role`                       | `AriaRole`                         | no       | -       | Semantic role for the scroll container. Use `"list"` for item lists, `"feed"` for activity streams.                                                                                                                       |
+| `tabIndex`                   | `number`                           | no       | -       | Makes the scroll container focusable. Pass `0` to include it in the natural tab sequence.                                                                                                                                 |
+| `id`                         | `string`                           | no       | -       | DOM id for the container. Useful when other elements reference it via `aria-labelledby`.                                                                                                                                  |
+| `aria-*`                     | `AriaAttributes`                   | no       | -       | Any React `aria-*` prop (`aria-label`, `aria-labelledby`, `aria-describedby`, etc.) forwarded to the scroll container.                                                                                                    |
 | `hasChildren`                | `boolean`                          | no       | -       | Set to `true` when `children` is a single element or a fragment rather than an array. Helps the component detect whether visible content exists to determine scroll state.                                                |
 | `initialScrollY`             | `number`                           | no       | -       | Scrolls the window to this Y offset on mount. Useful for restoring a user's scroll position when navigating back to a page.                                                                                               |
+
+## Accessibility
+
+Pass `role` and a label so screen readers can announce the container and its item count correctly:
+
+```tsx
+<InfiniteScroll
+  role="list"
+  aria-label="Search results"
+  dataLength={items.length}
+  next={fetchMore}
+  hasMore={hasMore}
+  loader={<p>Loading...</p>}
+>
+  {items.map((item) => (
+    <div role="listitem" key={item.id}>
+      {item.name}
+    </div>
+  ))}
+</InfiniteScroll>
+```
+
+Or reference an existing heading via `aria-labelledby`:
+
+```tsx
+<h2 id="results-heading">Search results</h2>
+<InfiniteScroll
+  role="list"
+  aria-labelledby="results-heading"
+  dataLength={items.length}
+  next={fetchMore}
+  hasMore={hasMore}
+  loader={<p>Loading...</p>}
+>
+```
+
+---
 
 ## Props, `useInfiniteScroll`
 
