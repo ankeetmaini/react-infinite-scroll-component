@@ -181,6 +181,8 @@ export default function InfiniteScroll({
 
   // --- Mutable refs — never trigger re-renders ---
   const actionTriggeredRef = useRef(false);
+  const previousScrollHeightRef = useRef<number | null>(null);
+  const previousScrollTopRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
   const startYRef = useRef(0);
   const currentYRef = useRef(0);
@@ -233,9 +235,27 @@ export default function InfiniteScroll({
   // is NOT recreated on every data load — it lives for the component's full
   // mount lifetime and only reconnects when structural config changes.
   useEffect(() => {
+    if (
+      inverse &&
+      previousScrollHeightRef.current !== null &&
+      previousScrollTopRef.current !== null
+    ) {
+      const scrollEl = height ? infScrollRef.current : getScrollableNode();
+
+      if (scrollEl) {
+        const heightDifference =
+          scrollEl.scrollHeight - previousScrollHeightRef.current;
+
+        scrollEl.scrollTop = previousScrollTopRef.current + heightDifference;
+      }
+
+      previousScrollHeightRef.current = null;
+      previousScrollTopRef.current = null;
+    }
+
     actionTriggeredRef.current = false;
     setShowLoader(false);
-  }, [dataLength]);
+  }, [dataLength, inverse, height, getScrollableNode]);
 
   // Effect 2b — IntersectionObserver lifecycle.
   // dataLength is intentionally absent from deps: the guard reset above handles
@@ -256,6 +276,16 @@ export default function InfiniteScroll({
       ([entry]) => {
         if (!entry.isIntersecting || actionTriggeredRef.current) return;
         actionTriggeredRef.current = true;
+
+        if (inverse) {
+          const scrollEl = height ? infScrollRef.current : getScrollableNode();
+
+          if (scrollEl) {
+            previousScrollHeightRef.current = scrollEl.scrollHeight;
+            previousScrollTopRef.current = scrollEl.scrollTop;
+          }
+        }
+
         setShowLoader(true);
         nextRef.current(); // stable ref — safe to call without listing next in deps
       },

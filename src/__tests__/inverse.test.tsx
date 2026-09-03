@@ -97,4 +97,120 @@ describe('inverse mode triggers next near top', () => {
       MockIntersectionObserver.instances[0].observedElements[0]
     );
   });
+  it('preserves scroll position when new items are loaded in inverse mode', () => {
+    const next = jest.fn();
+
+    const { container, rerender } = render(
+      <InfiniteScroll
+        dataLength={10}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+        height={100}
+        inverse
+      >
+        {Array.from({ length: 10 }, (_, index) => (
+          <div key={index}>Item {index}</div>
+        ))}
+      </InfiniteScroll>
+    );
+
+    const scrollContainer = container.querySelector(
+      '.infinite-scroll-component'
+    ) as HTMLElement;
+
+    Object.defineProperty(scrollContainer, 'scrollHeight', {
+      configurable: true,
+      value: 500,
+    });
+
+    scrollContainer.scrollTop = 100;
+
+    act(() => {
+      MockIntersectionObserver.instances[0].triggerIntersect();
+    });
+
+    expect(next).toHaveBeenCalled();
+
+    Object.defineProperty(scrollContainer, 'scrollHeight', {
+      configurable: true,
+      value: 700,
+    });
+
+    rerender(
+      <InfiniteScroll
+        dataLength={20}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+        height={100}
+        inverse
+      >
+        {Array.from({ length: 20 }, (_, index) => (
+          <div key={index}>Item {index}</div>
+        ))}
+      </InfiniteScroll>
+    );
+
+    expect(scrollContainer.scrollTop).toBe(300);
+  });
+  it('preserves scroll position with a scrollableTarget in inverse mode', () => {
+  const next = jest.fn();
+
+  const target = document.createElement('div');
+  target.id = 'scrollableDiv';
+  document.body.appendChild(target);
+
+  Object.defineProperty(target, 'scrollHeight', {
+    configurable: true,
+    value: 500,
+  });
+
+  target.scrollTop = 100;
+
+  const { rerender } = render(
+    <InfiniteScroll
+      dataLength={10}
+      loader={'Loading...'}
+      hasMore={true}
+      next={next}
+      inverse
+      scrollableTarget="scrollableDiv"
+    >
+      {Array.from({ length: 10 }, (_, index) => (
+        <div key={index}>Item {index}</div>
+      ))}
+    </InfiniteScroll>
+  );
+
+  act(() => {
+    MockIntersectionObserver.instances[0].triggerIntersect();
+  });
+
+  expect(next).toHaveBeenCalled();
+
+  Object.defineProperty(target, 'scrollHeight', {
+    configurable: true,
+    value: 700,
+  });
+
+  rerender(
+    <InfiniteScroll
+      dataLength={20}
+      loader={'Loading...'}
+      hasMore={true}
+      next={next}
+      inverse
+      scrollableTarget="scrollableDiv"
+    >
+      {Array.from({ length: 20 }, (_, index) => (
+        <div key={index}>Item {index}</div>
+      ))}
+    </InfiniteScroll>
+  );
+
+  expect(target.scrollTop).toBe(300);
+
+  document.body.removeChild(target);
+});
 });
