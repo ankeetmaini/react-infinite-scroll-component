@@ -268,7 +268,14 @@ export default function InfiniteScroll({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, scrollThreshold, inverse, height, getScrollableNode]);
+  }, [
+    hasMore,
+    scrollThreshold,
+    inverse,
+    height,
+    getScrollableNode,
+    dataLength,
+  ]);
 
   // Effect 3 — onScroll passthrough (only when prop is provided)
   useEffect(() => {

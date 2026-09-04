@@ -301,6 +301,48 @@ describe('React Infinite Scroll Component', () => {
     });
   });
 
+  it('reconnects the observer when dataLength changes', () => {
+    const next = jest.fn();
+
+    const { rerender } = render(
+      <InfiniteScroll
+        dataLength={1}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+        height={100}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    act(() => {
+      MockIntersectionObserver.instances[0].triggerIntersect();
+    });
+
+    expect(next).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <InfiniteScroll
+        dataLength={2}
+        loader={'Loading...'}
+        hasMore={true}
+        next={next}
+        height={100}
+      >
+        <div />
+      </InfiniteScroll>
+    );
+
+    expect(MockIntersectionObserver.instances).toHaveLength(2);
+
+    act(() => {
+      MockIntersectionObserver.instances[1].triggerIntersect();
+    });
+
+    expect(next).toHaveBeenCalledTimes(2);
+  });
+
   it('shows end message', () => {
     const { queryByText } = render(
       <InfiniteScroll
