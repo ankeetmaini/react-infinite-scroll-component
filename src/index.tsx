@@ -182,6 +182,7 @@ export default function InfiniteScroll({
   // --- Mutable refs — never trigger re-renders ---
   const actionTriggeredRef = useRef(false);
   const draggingRef = useRef(false);
+  const pullToRefreshThresholdBreachedRef = useRef(false);
   const startYRef = useRef(0);
   const currentYRef = useRef(0);
   const maxPullDownDistanceRef = useRef(0); // kept in sync with maxPullDownDistance state
@@ -351,6 +352,7 @@ export default function InfiniteScroll({
 
       // Read via ref — no stale closure risk, no effect re-registration needed
       if (delta >= pullThresholdRef.current) {
+        pullToRefreshThresholdBreachedRef.current = true;
         setPullToRefreshThresholdBreached(true);
       }
 
@@ -368,13 +370,9 @@ export default function InfiniteScroll({
       currentYRef.current = 0;
       draggingRef.current = false;
 
-      setPullToRefreshThresholdBreached((breached) => {
-        if (breached) {
-          // Read via ref — refreshFunction identity changes don't re-register listeners
-          refreshFunctionRef.current?.();
-        }
-        return false;
-      });
+      const shouldRefresh = pullToRefreshThresholdBreachedRef.current;
+      pullToRefreshThresholdBreachedRef.current = false;
+      setPullToRefreshThresholdBreached(false);
 
       requestAnimationFrame(() => {
         if (infScrollRef.current) {
@@ -383,6 +381,7 @@ export default function InfiniteScroll({
           infScrollRef.current.style.willChange = 'unset';
         }
       });
+      if (shouldRefresh) refreshFunctionRef.current?.();
     };
 
     scrollEl.addEventListener('touchstart', onStart as EventListener);
